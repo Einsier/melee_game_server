@@ -15,15 +15,15 @@ import (
  */
 
 type BulletsManager struct {
-	bullets     map[int64]*t.Bullet //存放本局游戏中的bullets
-	oldBullets  []int64             //存放应该清理的Bullets
-	newBullets  []int64             //存放新加入的Bullets
-	refreshLock sync.Mutex          //新旧更替的lock
+	bullets     sync.Map   //存放本局游戏中的bullets,key为int64,bulletId,value为*Bullet
+	oldBullets  []int64    //存放应该清理的Bullets
+	newBullets  []int64    //存放新加入的Bullets
+	refreshLock sync.Mutex //新旧更替的lock
 }
 
 //AddBullets 将创建的bullet加入BulletsManager
 func (bm *BulletsManager) AddBullets(b *t.Bullet) {
-	bm.bullets[b.Id] = b
+	bm.bullets.Store(b.Id, b)
 	bm.refreshLock.Lock()
 	defer bm.refreshLock.Unlock()
 	bm.newBullets = append(bm.newBullets, b.Id)
@@ -40,12 +40,12 @@ func (bm *BulletsManager) RefreshBullets() {
 
 		//todo 由于是一个go程负责清除,所以不用加锁...?怎么更优化
 		for _, id := range bm.oldBullets {
-			delete(bm.bullets, id)
+			bm.bullets.Delete(id)
 		}
 	}
 }
 
 //DeleteBullets 删除子弹
 func (bm *BulletsManager) DeleteBullets(id int64) {
-	delete(bm.bullets, id)
+	bm.bullets.Delete(id)
 }

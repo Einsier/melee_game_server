@@ -12,6 +12,7 @@ message Broadcast{
     HeroPropDeleteBroadcast     heroPropDeleteBroadcast       = 5;
     HeroPropAddBroadcast        heroPropAddBroadcast          = 6;
     HeroAttackBroadcast         heroAttackBroadcast           = 7;
+    //todo 游戏结束事件,英雄退出事件
 }
 
 message HeroChangeHealthBroadcast{

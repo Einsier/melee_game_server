@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
-	"melee_game_server/internal/game/game_room"
-	gt "melee_game_server/internal/game/game_type"
+	"melee_game_server/internal/normal_game/game_room"
+	gt "melee_game_server/internal/normal_game/game_type"
+	"strconv"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -116,18 +118,23 @@ func TestAtomic(t *testing.T) {
 
 func TestMap(t *testing.T) {
 	m := make(map[string]string)
-	for i := 0; i < 100000; i++ {
+	mLock := sync.Mutex{}
+	m["target"] = "target value"
+	for i := 0; i < 10000; i++ {
 		go func() {
-			old := m
-			//这里进行从old中取数等操作
-			_ = old["abc"]
-			_ = old["abc"]
-			_ = old["abc"]
-			_ = old["abc"]
+			s, ok := m["target"]
+			if !ok || s != "target value" {
+				t.Errorf("change target value into: %s", s)
+				return
+			}
 		}()
 		go func() {
-			m = make(map[string]string)
+			key := strconv.Itoa(rand.Int())
+			value := strconv.Itoa(rand.Int())
+			mLock.Lock()
+			defer mLock.Unlock()
+			m[key] = value
 		}()
 	}
-	time.Sleep(1 * time.Second)
+	time.Sleep(100 * time.Millisecond)
 }

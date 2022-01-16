@@ -1,8 +1,8 @@
 package game_room
 
 import (
-	"melee_game_server/configs/game_type_config"
-	t "melee_game_server/internal/game/game_type"
+	"melee_game_server/configs/normal_game_type_config"
+	t "melee_game_server/internal/normal_game/game_type"
 	"sync"
 	"time"
 )
@@ -32,7 +32,7 @@ func (bm *BulletsManager) AddBullets(b *t.Bullet) {
 //RefreshBullets 定期删除需要清理的Bullets
 func (bm *BulletsManager) RefreshBullets() {
 	for {
-		time.Sleep(game_type_config.BulletRefreshTime)
+		time.Sleep(normal_game_type_config.BulletRefreshTime)
 		bm.refreshLock.Lock()
 		bm.oldBullets = bm.newBullets
 		bm.newBullets = make([]int64, 0)

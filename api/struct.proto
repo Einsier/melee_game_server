@@ -1,7 +1,6 @@
 syntax = "proto3";
 package proto;
 option go_package = ".;proto";
-import "consts.proto";
 
 
 message Vector2{

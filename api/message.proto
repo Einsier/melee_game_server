@@ -1,0 +1,19 @@
+syntax = "proto3";
+package proto;
+option go_package = ".;proto";
+import "request.proto";
+import "struct.proto";
+import "response.proto";
+import "consts.proto";
+import "unicast.proto";
+import "broadcast.proto";
+
+message TopMessage {
+  TopMessageType    topMessageType = 1;   //用于区分当前是Notify,Request,Response,
+  int32             sessionId      = 3;   //看学长留了个这个字段...不知道干嘛用的
+  int32             seqId          = 4;   //看学长留了个这个字段...不知道干嘛用的
+  Broadcast         broadcast      = 5;   //全员的广播
+  Unicast           unicast        = 6;   //给某个玩家的单播
+  Request           request        = 7;   //客户端发给服务器的请求
+  Response          response       = 8;   //服务器对从客户端发来的Request的回复
+}

@@ -1,0 +1,9 @@
+syntax = "proto3";
+package proto;
+option go_package = ".;proto";
+import "consts.proto";
+import "struct.proto";
+
+message Unicast{
+    UnicastCode               unicastCode                 = 1;
+}

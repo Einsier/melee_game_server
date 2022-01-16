@@ -1,0 +1,70 @@
+syntax = "proto3";
+package proto;
+option go_package = ".;proto";
+
+
+enum TopMessageType{
+    BroadcastType = 0; //广播类型
+    UnicastType   = 1; //单播类型
+    RequestType   = 2; //请求类型
+    ResponseType  = 3; //答复类型
+}
+
+enum RequestCode{
+    //request
+    PlayerEnterGameRequestCode          = 0;        //玩家进入游戏请求,需要回复
+    PlayerQuitGameRequestCode           = 1;        //玩家退出游戏请求,需要回复
+    HeroPositionReportRequestCode       = 2;        //Hero定期报告当前位置,不需要回复
+    HeroMovementChangeRequestCode       = 3;        //Hero运动方向(例如本来向左走改为向右走/停下),不需要回复
+    HeroAttackRequestCode               = 4;        //Hero发动攻击(近战/发射子弹),不需要回复
+    HeroGetPropRequestCode              = 5;        //Hero得到道具请求,需要回复
+    HeroBulletColliderHeroRequestCode   = 6;        //一个Hero发射的子弹打击到另一个Hero的请求,不需要回复
+    PlayerHeartBeatRequestCode          = 7;        //玩家心跳请求,需要回复(用于延迟检测)
+}
+
+enum ResponseCode{
+    //response
+    PlayerEnterGameResponseCode         = 0;        //Hero进入游戏回复
+    PlayerQuitGameResponseCode          = 1;        //Hero退出游戏回复
+    HeroGetPropResponseCode             = 2;        //Hero得到道具回复
+    PlayerHeartBeatResponseCode         = 3;        //玩家心跳请求的回复
+}
+
+enum UnicastCode{
+    //unicast
+    Temp                                = 0;
+}
+
+enum BroadcastCode{
+    //broadcast
+    HeroChangeHealthBroadcastCode       = 0;       //某个Hero的血量发生变化,广播给全体玩家
+    HeroMovementChangeBroadcastCode     = 1;       //某个Hero的运动方向发生变化
+    HeroPositionReportBroadcastCode     = 2;       //某个Hero发来当前位置后,给全部其他玩家广播
+    //HeroBulletDeleteBroadcastCode       = 3;       //通知全部玩家删除某个子弹
+    HeroPropDeleteBroadcastCode         = 3;       //通知全部玩家删除某个Prop
+    HeroPropAddBroadcastCode            = 4;       //通知全部玩家增加了某个道具
+    HeroAttackBroadcastCode             = 5;       //通知全部玩家某个玩家发起了攻击(近战/远程)
+    GameStartBroadcastCode              = 6;       //通知全部玩家游戏开始
+}
+
+enum PropType{
+    StrawberryType                      = 0;        //草莓(加血)
+    TrapType                            = 1;        //陷阱(掉血)
+    BulletPocketType                    = 2;        //子弹带(可以发射子弹)
+}
+
+enum HeroMovementType{
+    HeroMoveLeftType = 0;       //左走
+    HeroMoveRightType = 1;      //右走
+    HeroMoveUpType = 2;         //上走
+    HeroMoveDownType = 3;       //下走
+    HeroStopType = 4;           //停止
+}
+
+enum HeroAttackType{
+    HeroSwordAttackType = 0;    //英雄近战
+    HeroBulletAttackType = 1;   //英雄发射子弹
+}
+
+
+

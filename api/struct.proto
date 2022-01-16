@@ -1,0 +1,11 @@
+syntax = "proto3";
+package proto;
+option go_package = ".;proto";
+import "consts.proto";
+
+
+message Vector2{
+    float X = 1;
+    float Y = 2;
+}
+

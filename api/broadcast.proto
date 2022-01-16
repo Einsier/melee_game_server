@@ -1,0 +1,50 @@
+syntax = "proto3";
+package proto;
+option go_package = ".;proto";
+import "consts.proto";
+import "struct.proto";
+
+message Broadcast{
+    BroadcastCode               broadcastCode                 = 1;
+    HeroChangeHealthBroadcast   heroChangeHealthBroadcast     = 2;
+    HeroMovementChangeBroadcast heroMovementChangeBroadcast   = 3;
+    HeroPositionReportBroadcast heroPositionReportBroadcast   = 4;
+    HeroPropDeleteBroadcast     heroPropDeleteBroadcast       = 5;
+    HeroPropAddBroadcast        heroPropAddBroadcast          = 6;
+    HeroAttackBroadcast         heroAttackBroadcast           = 7;
+}
+
+message HeroChangeHealthBroadcast{
+    int32 heroId      = 1;
+    int32 heroHealth  = 2;
+}
+
+message HeroMovementChangeBroadcast{
+    int32 heroId      = 1;
+    int32 heroHealth  = 2;
+}
+
+message HeroPositionReportBroadcast{
+    int32 heroId            = 1;
+    Vector2 heroPosition    = 2;
+}
+
+message HeroPropDeleteBroadcast{
+    int32 propId            = 1;
+}
+
+message HeroPropAddBroadcast{
+    int32 propId            = 1;
+    Vector2 propPosition    = 2;
+}
+
+message HeroAttackBroadcast{
+    int32 heroId                  = 1;
+    HeroAttackType heroAttackType = 2;
+    Vector2 position              = 3;
+    Vector2 direction             = 4;
+}
+
+message GameStartBroadcast{
+    int32 heroId = 1;   //没啥用
+}

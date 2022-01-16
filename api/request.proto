@@ -1,0 +1,61 @@
+syntax = "proto3";
+package proto;
+option go_package = ".;proto";
+import "consts.proto";
+import "struct.proto";
+
+message Request{
+    RequestCode                     requestCode                     = 1;
+    PlayerEnterGameRequest          playerEnterGameRequest          = 2;
+    PlayerQuitGameRequest           playerQuitGameRequest           = 3;
+    HeroPositionReportRequest       heroPositionReportRequest       = 4;
+    HeroMovementChangeRequest       heroMovementChangeRequest       = 5;
+    HeroAttackRequest               heroAttackRequest               = 6;
+    HeroGetPropRequest              heroGetPropRequest              = 7;
+    HeroBulletColliderHeroRequest   heroBulletColliderHeroRequest   = 8;
+    PlayerHeartBeatRequest          playerHeartBeatRequest          = 9;
+}
+
+message PlayerEnterGameRequest{
+    int32 playerId = 1;
+    int32 gameRoomId = 2;
+}
+
+message PlayerQuitGameRequest{
+    int32 heroId = 1;
+    int32 playerId = 2;
+}
+
+message HeroPositionReportRequest{
+    int32 heroId = 1;
+    Vector2 position = 2;
+}
+
+message HeroMovementChangeRequest{
+    int32 heroId = 1;
+    HeroMovementType heroMovementType = 2;
+}
+
+message HeroAttackRequest{
+    int32          heroId = 1;
+    HeroAttackType heroAttackType = 2;
+    Vector2        position = 3;
+    Vector2        direction = 4;
+}
+
+message HeroGetPropRequest{
+    int32       heroId = 1;
+    int32       propId = 2;
+}
+
+message HeroBulletColliderHeroRequest{
+    int32       heroId          = 1;
+    int32       bulletId        = 2;
+    int32       colliderHeroId  = 3;
+}
+
+message PlayerHeartBeatRequest{
+    int32       heroId          = 1;
+    int32       clientSendTime  = 2;
+}
+

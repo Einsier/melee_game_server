@@ -1,0 +1,30 @@
+syntax = "proto3";
+package proto;
+option go_package = ".;proto";
+import "consts.proto";
+import "struct.proto";
+
+message Response{
+    ResponseCode            responseCode            = 1;
+    PlayerEnterGameResponse playerEnterGameResponse = 2;
+    PlayerQuitGameResponse  playerQuitGameResponse  = 3;
+    HeroGetPropResponse     heroGetPropResponse     = 4;
+    PlayerHeartBeatResponse playerHeartBeatResponse = 5;
+}
+
+message PlayerEnterGameResponse{
+    int32 heroId    = 1;        //若为-1表示失败
+}
+
+message PlayerQuitGameResponse{
+    //todo 待构思
+    bool success = 1;
+}
+
+message HeroGetPropResponse{
+    bool success = 1;
+}
+
+message PlayerHeartBeatResponse{
+    int64 serverSendTime = 1;
+}

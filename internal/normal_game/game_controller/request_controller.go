@@ -2,6 +2,7 @@ package game_controller
 
 import (
 	"melee_game_server/api/proto"
+	"melee_game_server/internal/normal_game/game_room"
 	"sync"
 )
 
@@ -12,9 +13,7 @@ import (
 *@Description:
  */
 
-type RequestHandler interface {
-	Handle(s *proto.Request)
-}
+type RequestHandler func(s *proto.Request, room *game_room.NormalGameRoom)
 
 type RequestHandlerRegister struct {
 	handlers map[int32]RequestHandler

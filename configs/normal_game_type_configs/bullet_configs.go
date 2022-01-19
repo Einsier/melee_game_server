@@ -1,4 +1,4 @@
-package normal_game_type_config
+package normal_game_type_configs
 
 /**
 *@Author Sly

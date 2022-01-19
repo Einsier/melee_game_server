@@ -1,7 +1,7 @@
 package game_type
 
 import (
-	config "melee_game_server/configs/normal_game_type_config"
+	config "melee_game_server/configs/normal_game_type_configs"
 	"melee_game_server/utils"
 	"sync"
 )

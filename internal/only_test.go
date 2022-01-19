@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
-	"melee_game_server/internal/normal_game/game_room"
 	gt "melee_game_server/internal/normal_game/game_type"
 	"strconv"
 	"sync"
@@ -44,7 +43,7 @@ func getVector(times int) (x []gt.Vector2, y []gt.Vector2) {
 	return
 }
 
-func TestHeroes(t *testing.T) {
+/*func TestHeroes(t *testing.T) {
 	h1 := gt.NewHero(1, gt.Vector2Zero)
 	h2 := gt.NewHero(2, gt.Vector2Zero)
 	h3 := gt.NewHero(3, gt.Vector2Zero)
@@ -60,7 +59,7 @@ func TestHeroes(t *testing.T) {
 	}
 
 }
-
+*/
 func TestGetVector(t *testing.T) {
 	x, y := getVector(100000)
 	v := gt.NewVector2(0, 0)
@@ -138,3 +137,11 @@ func TestMap(t *testing.T) {
 	}
 	time.Sleep(100 * time.Millisecond)
 }
+
+/*func TestMarshal(t *testing.T) {
+	type UnmarshalFunc func ([]byte,interface{})	//*pb.TopMessage
+	type MarshalFunc func(message interface{})[]byte//*pb.TopMessage
+	type GameNetServer interface {
+		Init(port string,decoder UnmarshalFunc,encoder MarshalFunc)
+	}
+}*/

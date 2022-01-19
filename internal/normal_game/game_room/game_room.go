@@ -1,5 +1,7 @@
 package game_room
 
+import "melee_game_server/internal/normal_game/game_net"
+
 /**
 *@Author Sly
 *@Date 2022/1/14
@@ -7,9 +9,9 @@ package game_room
 *@Description:用于管理一次游戏的对局,包括玩家管理,对局中的prop(道具)管理以及子弹管理
  */
 
-type GameRoom struct {
-	hm HeroesManager
-	pm PropManager
-	bm BulletsManager
-	nm NetManager
+type NormalGameRoom struct {
+	heroManager    HeroesManager
+	propsManager   PropsManager
+	bulletsManager BulletsManager
+	netServer      game_net.NormalGameNetServer
 }

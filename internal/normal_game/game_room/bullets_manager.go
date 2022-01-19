@@ -1,7 +1,7 @@
 package game_room
 
 import (
-	"melee_game_server/configs/normal_game_type_config"
+	"melee_game_server/configs/normal_game_type_configs"
 	t "melee_game_server/internal/normal_game/game_type"
 	"sync"
 	"time"
@@ -30,15 +30,15 @@ func (bm *BulletsManager) AddBullets(b *t.Bullet) {
 }
 
 //RefreshBullets 定期删除需要清理的Bullets
+//todo 改成注册到TimeEvent中的形式
 func (bm *BulletsManager) RefreshBullets() {
 	for {
-		time.Sleep(normal_game_type_config.BulletRefreshTime)
+		time.Sleep(normal_game_type_configs.BulletRefreshTime)
 		bm.refreshLock.Lock()
 		bm.oldBullets = bm.newBullets
 		bm.newBullets = make([]int64, 0)
 		bm.refreshLock.Unlock()
 
-		//todo 由于是一个go程负责清除,所以不用加锁...?怎么更优化
 		for _, id := range bm.oldBullets {
 			bm.bullets.Delete(id)
 		}

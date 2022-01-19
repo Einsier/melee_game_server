@@ -1,4 +1,4 @@
-package normal_game_type_config
+package normal_game_type_configs
 
 /**
 *@Author Sly
@@ -6,3 +6,5 @@ package normal_game_type_config
 *@Version 1.0
 *@Description:游戏道具信息的配置
  */
+
+const PropRefreshTime = 1 //刷新间隔为1s

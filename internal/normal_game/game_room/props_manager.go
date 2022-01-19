@@ -7,5 +7,5 @@ package game_room
 *@Description:
  */
 
-type PropManager struct {
+type PropsManager struct {
 }

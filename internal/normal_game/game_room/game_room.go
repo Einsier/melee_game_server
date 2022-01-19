@@ -27,6 +27,7 @@ type NormalGameRoom struct {
 	netServer      game_net.NormalGameNetServer
 	playerManager  PlayerManager
 	over           chan interface{}
+	PlayerNum      int32
 }
 
 //Init 初始化GameRoom的参数

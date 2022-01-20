@@ -1,7 +1,7 @@
 package game_type
 
 import (
-	config "melee_game_server/configs/normal_game_type_configs"
+	configs "melee_game_server/configs/normal_game_type_configs"
 	"melee_game_server/utils"
 	"sync"
 )
@@ -30,8 +30,8 @@ func NewHero(id int32, position Vector2) *Hero {
 		Id:            id,
 		position:      position,
 		lookDirection: Vector2Down,
-		status:        config.HeroAlive,
-		health:        config.HeroInitHealth,
+		status:        configs.HeroAlive,
+		health:        configs.HeroInitHealth,
 	}
 }
 
@@ -52,23 +52,24 @@ func (h *Hero) GetHealth() int32 {
 //ChangeHeath 英雄加血/掉血,采用互斥防止多个go程同时修改血量
 func (h *Hero) ChangeHeath(heath int32) bool {
 	/*
-	*  @Author:sly
-	*  @name:ChangeHeath
-	*  @Description: 英雄加血/掉血,采用互斥防止多个go程同时修改血量
-	*  @receiver h 英雄指针
-	*  @param heath 变更的血量
-	*  @return bool 变换之后有没有狗带,如果狗带返回true,并且将Status设置为狗带状态
-	*  @date 2022-01-14 20:28:43
-	 */
-	if h.status == config.HeroDead {
+		*  @Author:sly
+		*  @name:ChangeHeath
+		*  @Description: 英雄加血/掉血,采用互斥防止多个go程同时修改血量
+		*  @receiver h 英雄指针
+		*  @param heath 变更的血量
+		*  @return bool 变换之后有没有狗带,如果狗带返回true,并且将Status设置为狗带状态.
+						只有得到health lock的go程才可以更改英雄状态,所以这里Status的改变不用互斥
+		*  @date 2022-01-14 20:28:43
+	*/
+	if h.status == configs.HeroDead {
 		return true
 	}
 	h.healthLock.Lock()
 	defer h.healthLock.Unlock()
-	newHealth := utils.MaxInt32(h.health+heath, config.HeroMaxHealth)
+	newHealth := utils.MaxInt32(h.health+heath, configs.HeroMaxHealth)
 	if newHealth <= 0 {
 		newHealth = 0
-		h.status = config.HeroDead
+		h.status = configs.HeroDead
 		return true
 	}
 	return false
@@ -81,7 +82,7 @@ func (h *Hero) ChangePosition(position Vector2) {
 	h.position = position
 }
 
-//ChangeDirection 互斥更改position
+//ChangeDirection 互斥更改direction
 func (h *Hero) ChangeDirection(direction Vector2) {
 	h.directionLock.Lock()
 	defer h.directionLock.Unlock()

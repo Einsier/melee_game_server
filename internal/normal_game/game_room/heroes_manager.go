@@ -45,13 +45,6 @@ func (hm *HeroesManager) DeleteHero(h *gt.Hero) {
 	delete(hm.heroes, h.Id)
 }
 
-//GetHero 从heroes中获得一个英雄
-func (hm *HeroesManager) GetHero(id int32) *gt.Hero {
-	hm.lock.RLock()
-	defer hm.lock.RUnlock()
-	return hm.GetHero(id)
-}
-
 //MoveHeroPosition 更改hero的position
 func (hm *HeroesManager) MoveHeroPosition(heroId int32, position gt.Vector2) {
 	hm.lock.RLock()

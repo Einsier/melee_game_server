@@ -13,6 +13,14 @@ import (
 *@Description:
  */
 
+type RequestController struct {
+	register *RequestHandlerRegister
+}
+
+func NewRequestController() (c *RequestController) {
+	return nil
+}
+
 type RequestHandler func(s *proto.Request, room *game_room.NormalGameRoom)
 
 type RequestHandlerRegister struct {

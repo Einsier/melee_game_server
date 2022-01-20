@@ -115,6 +115,26 @@ func TestAtomic(t *testing.T) {
 	time.Sleep(1 * time.Second)
 }
 
+func TestAtomic2(t *testing.T) {
+	target := int32(0)
+	m := sync.Map{}
+	for i := 0; i < 100000; i++ {
+		go func() {
+			newTarget := atomic.AddInt32(&target, 1)
+			if _, ok := m.Load(newTarget); ok {
+				t.Fatalf("get dup:%d", target)
+			}
+			m.Store(newTarget, 1)
+		}()
+	}
+	time.Sleep(time.Second)
+	for i := 1; i < 100001; i++ {
+		if _, ok := m.Load(int32(i)); !ok {
+			t.Fatalf("not get:%d", i)
+		}
+	}
+}
+
 func TestMap(t *testing.T) {
 	m := make(map[string]string)
 	mLock := sync.Mutex{}
@@ -137,11 +157,3 @@ func TestMap(t *testing.T) {
 	}
 	time.Sleep(100 * time.Millisecond)
 }
-
-/*func TestMarshal(t *testing.T) {
-	type UnmarshalFunc func ([]byte,interface{})	//*pb.TopMessage
-	type MarshalFunc func(message interface{})[]byte//*pb.TopMessage
-	type GameNetServer interface {
-		Init(port string,decoder UnmarshalFunc,encoder MarshalFunc)
-	}
-}*/

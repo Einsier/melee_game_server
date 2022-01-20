@@ -4,6 +4,7 @@ import (
 	configs "melee_game_server/configs/normal_game_type_configs"
 	"melee_game_server/utils"
 	"sync"
+	"time"
 )
 
 /**
@@ -17,11 +18,12 @@ type Hero struct {
 	Id            int32        //英雄在本局游戏中的id
 	position      Vector2      //当前位置
 	lookDirection Vector2      //看的方向
-	status        int32        //当前状态
+	Status        int32        //当前状态
 	health        int32        //当前血量
 	healthLock    sync.RWMutex //血量锁
 	positionLock  sync.RWMutex //更改position的锁
 	directionLock sync.RWMutex //更改direction的锁
+	UpdateTime    int64        //上次更新时间
 }
 
 //NewHero 通过赋予id和位置创造一个角色
@@ -30,8 +32,9 @@ func NewHero(id int32, position Vector2) *Hero {
 		Id:            id,
 		position:      position,
 		lookDirection: Vector2Down,
-		status:        configs.HeroAlive,
+		Status:        configs.HeroAlive,
 		health:        configs.HeroInitHealth,
+		UpdateTime:    time.Now().UnixNano(),
 	}
 }
 
@@ -40,6 +43,13 @@ func (h *Hero) GetPosition() Vector2 {
 	h.positionLock.RLock()
 	defer h.positionLock.RUnlock()
 	return h.position
+}
+
+//GetDirection 获取当前英雄的朝向
+func (h *Hero) GetDirection() Vector2 {
+	h.directionLock.RLock()
+	defer h.directionLock.Unlock()
+	return h.lookDirection
 }
 
 //GetHealth 获取当前Hero的health
@@ -61,7 +71,7 @@ func (h *Hero) ChangeHeath(heath int32) bool {
 						只有得到health lock的go程才可以更改英雄状态,所以这里Status的改变不用互斥
 		*  @date 2022-01-14 20:28:43
 	*/
-	if h.status == configs.HeroDead {
+	if h.Status == configs.HeroDead {
 		return true
 	}
 	h.healthLock.Lock()
@@ -69,7 +79,7 @@ func (h *Hero) ChangeHeath(heath int32) bool {
 	newHealth := utils.MaxInt32(h.health+heath, configs.HeroMaxHealth)
 	if newHealth <= 0 {
 		newHealth = 0
-		h.status = configs.HeroDead
+		h.Status = configs.HeroDead
 		return true
 	}
 	return false

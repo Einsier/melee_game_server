@@ -14,7 +14,7 @@ type GameInfo struct {
 
 //PlayerInfo 暂时只有playerId,用于normal_game一开始玩家进入游戏时的身份校验
 type PlayerInfo struct {
-	playerId int
+	PlayerId int
 }
 
 type RoomInitInfo struct {

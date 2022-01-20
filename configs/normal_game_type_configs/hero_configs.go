@@ -22,3 +22,5 @@ const (
 	HeroColliderOffsetX = 0.0       //Ruby的碰撞偏移X
 	HeroColliderOffsetY = 0.0       //Ruby的碰撞偏移Y
 )
+
+const HeroMoveSpeed = 1.0 //英雄移动速度

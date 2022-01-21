@@ -24,3 +24,10 @@ const (
 )
 
 const HeroMoveSpeed = 1.0 //英雄移动速度
+
+//Player的状态
+const (
+	PlayerNotRegisteredStatus = iota
+	PlayerEnterGameStatus
+	PlayerLeaveGameStatus
+)

@@ -2,7 +2,6 @@ package test
 
 import (
 	"fmt"
-	gc "melee_game_server/internal/normal_game/game_controller"
 	"melee_game_server/internal/normal_game/game_room"
 	"sync/atomic"
 	"testing"
@@ -52,12 +51,12 @@ func TestTimeEventController(t *testing.T) {
 	}
 
 	room := game_room.NormalGameRoom{PlayerNum: 100}
-	countPeopleEvent := gc.NewTimeEvent(CountPeopleTimeEventCode, CountPeopleTimeEventSlice, CountPeopleTimeEventCallback, &room)
-	printTimeTimeEvent := gc.NewTimeEvent(PrintTimeTimeEventCode, PrintTimeTimeEventSlice, PrintTimeTimeEventCallback, &room)
-	addPeopleEvent := gc.NewTimeEvent(AddPeopleTimeEventCode, AddPeopleTimeEventSlice, AddPeopleTimeEventCallback, &room)
-	decPeopleEvent := gc.NewTimeEvent(DecPeopleTimeEventCode, DecPeopleTimeEventSlice, DecPeopleTimeEventCallback, &room)
-	idleEvent := gc.NewTimeEvent(IdleEventCode, IdleEventSlice, IdleEventCallback, &room)
-	c := gc.NewTimeEventController()
+	countPeopleEvent := game_room.NewTimeEvent(CountPeopleTimeEventCode, CountPeopleTimeEventSlice, CountPeopleTimeEventCallback, &room)
+	printTimeTimeEvent := game_room.NewTimeEvent(PrintTimeTimeEventCode, PrintTimeTimeEventSlice, PrintTimeTimeEventCallback, &room)
+	addPeopleEvent := game_room.NewTimeEvent(AddPeopleTimeEventCode, AddPeopleTimeEventSlice, AddPeopleTimeEventCallback, &room)
+	decPeopleEvent := game_room.NewTimeEvent(DecPeopleTimeEventCode, DecPeopleTimeEventSlice, DecPeopleTimeEventCallback, &room)
+	idleEvent := game_room.NewTimeEvent(IdleEventCode, IdleEventSlice, IdleEventCallback, &room)
+	c := game_room.NewTimeEventController()
 	c.AddEvent(countPeopleEvent)
 	c.AddEvent(printTimeTimeEvent)
 	c.AddEvent(addPeopleEvent)

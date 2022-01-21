@@ -7,5 +7,5 @@ package normal_game_type_configs
 *@Description:
  */
 
-const MaxNormalGamePlayerNum = 10 //normal版本的最大玩家人数
-const MaxHeartBeatInterval = 20   //单位是s
+const MaxNormalGamePlayerNum = int32(10) //normal版本的最大玩家人数
+const MaxHeartBeatInterval = int32(20)   //单位是s

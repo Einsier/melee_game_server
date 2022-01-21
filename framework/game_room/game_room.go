@@ -1,7 +1,7 @@
 package game_room
 
 /**
-*@Author Sly
+*@Author chenjiajia
 *@Date 2022/1/17
 *@Version 1.0
 *@Description:game_room的接口
@@ -14,11 +14,11 @@ type GameInfo struct {
 
 //PlayerInfo 暂时只有playerId,用于normal_game一开始玩家进入游戏时的身份校验
 type PlayerInfo struct {
-	PlayerId int
+	PlayerId int32
 }
 
 type RoomInitInfo struct {
-	Id          int              //room分配的id
+	Id          int32            //room分配的id
 	Port        string           //room分配的端口
 	Over        chan interface{} //是否结束的标志,如果结束则由game_room关闭管道通知game_server
 	JoinPlayers []*PlayerInfo    //待加入的玩家的信息

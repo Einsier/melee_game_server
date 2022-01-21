@@ -1,7 +1,6 @@
-package game_controller
+package game_room
 
 import (
-	gr "melee_game_server/internal/normal_game/game_room"
 	"time"
 )
 
@@ -12,18 +11,18 @@ import (
 *@Description:用于注册房间中的定时事件
  */
 
-type TimeEventCallback func(gm *gr.NormalGameRoom)
+type TimeEventCallback func(gm *NormalGameRoom)
 
 //TimeEvent 需要通过框架定时的操作,Id最好通过const注册到全局中,以防重复(暂时没写错误处理,错误会宕机),slice为调用的间隔,callback为处理事件
 //room为绑定的room,可以通过room来对房间内网络/hero/道具等内容进行定时的管理
 type TimeEvent struct {
-	Id       int32              //编号
-	slice    time.Duration      //间隔的时间
-	callback TimeEventCallback  //执行的回调函数
-	room     *gr.NormalGameRoom //作为callBack的参数
+	Id       int32             //编号
+	slice    time.Duration     //间隔的时间
+	callback TimeEventCallback //执行的回调函数
+	room     *NormalGameRoom   //作为callBack的参数
 }
 
-func NewTimeEvent(id int32, slice time.Duration, callback TimeEventCallback, room *gr.NormalGameRoom) *TimeEvent {
+func NewTimeEvent(id int32, slice time.Duration, callback TimeEventCallback, room *NormalGameRoom) *TimeEvent {
 	return &TimeEvent{
 		Id:       id,
 		slice:    slice,

@@ -19,4 +19,6 @@ type GameNetServer interface {
 	SendByHeroId(hId []int32, msg *proto.TopMessage)
 	SendByPlayerId(pId []int32, msg *proto.TopMessage)
 	Receive() *proto.TopMessage
+	SendByConn(conn []*net.Conn, msg *proto.TopMessage)
+	SendBySingleConn(conn *net.Conn, msg *proto.TopMessage)
 }

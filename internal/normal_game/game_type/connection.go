@@ -10,7 +10,7 @@ import "net"
  */
 
 type Connection struct {
-	playerId int32
-	heroId   int32
-	conn     *net.Conn
+	PlayerId int32
+	HeroId   int32
+	Conn     *net.Conn
 }

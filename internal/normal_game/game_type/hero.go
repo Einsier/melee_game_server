@@ -4,7 +4,6 @@ import (
 	configs "melee_game_server/configs/normal_game_type_configs"
 	"melee_game_server/utils"
 	"sync"
-	"time"
 )
 
 /**
@@ -18,12 +17,12 @@ type Hero struct {
 	Id            int32        //英雄在本局游戏中的id
 	position      Vector2      //当前位置
 	lookDirection Vector2      //看的方向
-	Status        int32        //当前状态
-	health        int32        //当前血量
+	status        int32        //当前状态,枚举类型见normal_game_type_configs/hero_configs
+	Health        int32        //当前血量
 	healthLock    sync.RWMutex //血量锁
 	positionLock  sync.RWMutex //更改position的锁
 	directionLock sync.RWMutex //更改direction的锁
-	UpdateTime    int64        //上次更新时间
+	statusLock    sync.RWMutex //更改status的锁
 }
 
 //NewHero 通过赋予id和位置创造一个角色
@@ -32,9 +31,8 @@ func NewHero(id int32, position Vector2) *Hero {
 		Id:            id,
 		position:      position,
 		lookDirection: Vector2Down,
-		Status:        configs.HeroAlive,
-		health:        configs.HeroInitHealth,
-		UpdateTime:    time.Now().UnixNano(),
+		status:        configs.HeroAlive,
+		Health:        configs.HeroInitHealth,
 	}
 }
 
@@ -56,7 +54,7 @@ func (h *Hero) GetDirection() Vector2 {
 func (h *Hero) GetHealth() int32 {
 	h.healthLock.RLock()
 	defer h.healthLock.Unlock()
-	return h.health
+	return h.Health
 }
 
 //ChangeHeath 英雄加血/掉血,采用互斥防止多个go程同时修改血量
@@ -71,29 +69,35 @@ func (h *Hero) ChangeHeath(heath int32) bool {
 						只有得到health lock的go程才可以更改英雄状态,所以这里Status的改变不用互斥
 		*  @date 2022-01-14 20:28:43
 	*/
-	if h.Status == configs.HeroDead {
+	if h.status == configs.HeroDead {
 		return true
 	}
 	h.healthLock.Lock()
 	defer h.healthLock.Unlock()
-	newHealth := utils.MaxInt32(h.health+heath, configs.HeroMaxHealth)
+	newHealth := utils.MaxInt32(h.Health+heath, configs.HeroMaxHealth)
 	if newHealth <= 0 {
 		newHealth = 0
-		h.Status = configs.HeroDead
+		h.status = configs.HeroDead
 		return true
 	}
 	return false
 }
 
-//ChangePosition 互斥的更改position
-func (h *Hero) ChangePosition(position Vector2) {
+func (h *Hero) SetStatus(s int32) {
+	h.statusLock.Lock()
+	defer h.statusLock.Unlock()
+	h.status = s
+}
+
+//SetPosition 互斥的更改position
+func (h *Hero) SetPosition(position Vector2) {
 	h.positionLock.Lock()
 	defer h.positionLock.Unlock()
 	h.position = position
 }
 
-//ChangeDirection 互斥更改direction
-func (h *Hero) ChangeDirection(direction Vector2) {
+//SetDirection 互斥更改direction
+func (h *Hero) SetDirection(direction Vector2) {
 	h.directionLock.Lock()
 	defer h.directionLock.Unlock()
 	h.lookDirection = direction

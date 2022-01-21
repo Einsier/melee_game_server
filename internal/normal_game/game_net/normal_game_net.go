@@ -2,7 +2,6 @@ package game_net
 
 import (
 	"melee_game_server/api/proto"
-	configs "melee_game_server/configs/normal_game_type_configs"
 	gn "melee_game_server/framework/game_net/api"
 	"melee_game_server/plugins/kcp_net/mailbox"
 	"net"
@@ -26,9 +25,8 @@ type NormalGameNetServer struct {
 	lock       sync.Mutex
 }
 
-func NewNormalGameNetServer(port string) *NormalGameNetServer {
+func NewNormalGameNetServer() *NormalGameNetServer {
 	kcpNet := mailbox.Mailbox{}
-	kcpNet.Init(port, configs.KcpRecvSize, configs.KcpSendSize)
 	return &NormalGameNetServer{
 		np:         &kcpNet,
 		heroConn:   make(map[int32]*net.Conn),
@@ -52,6 +50,15 @@ func (ngs *NormalGameNetServer) Register(playerId, heroId int32, conn *net.Conn)
 	defer ngs.lock.Unlock()
 	ngs.playerConn[playerId] = conn
 	ngs.heroConn[heroId] = conn
+}
+
+func (ngs *NormalGameNetServer) SendBySingleConn(conn *net.Conn, msg *proto.TopMessage) {
+	s := []*net.Conn{conn}
+	ngs.np.Send(gn.NewReplyMail(s, msg))
+}
+
+func (ngs *NormalGameNetServer) SendByConn(conn []*net.Conn, msg *proto.TopMessage) {
+	ngs.np.Send(gn.NewReplyMail(conn, msg))
 }
 
 func (ngs *NormalGameNetServer) SendByHeroId(hIdSlice []int32, msg *proto.TopMessage) {

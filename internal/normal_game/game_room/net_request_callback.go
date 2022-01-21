@@ -114,8 +114,7 @@ func PlayerQuitGameRequestCallback(msg *api.Mail, room *NormalGameRoom) {
 }
 
 func HeroPositionReportRequestCallback(msg *api.Mail, room *NormalGameRoom) {
-	/*	req := msg.Msg.Request.HeroPositionReportRequest
-		room.GetHeroesManager().MoveHeroPosition()*/
+	//if room.Status ==
 }
 
 func HeroMovementChangeRequestCallback(msg *api.Mail, room *NormalGameRoom) {

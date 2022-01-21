@@ -52,7 +52,7 @@ func (room *NormalGameRoom) GetTimeEventController() *TimeEventController {
 
 //Init 初始化GameRoom的参数
 func (room *NormalGameRoom) Init(info *game_room.RoomInitInfo) {
-	room.Id = int32(info.Id)
+	room.Id = info.Id
 	room.port = info.Port
 	room.over = info.Over
 	room.Prepare = make(chan interface{})

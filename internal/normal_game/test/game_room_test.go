@@ -84,6 +84,7 @@ func TestEnterGameRequest(t *testing.T) {
 		JoinPlayers: TestJoinPlayers,
 	}
 	room.Init(&TestRoomInitInfo)
+	room.Status = configs.NormalGameWaitPlayerStatus
 	//处理正确消息
 	go func() {
 		for _, mail := range TestEnterGameRequestRightMap {

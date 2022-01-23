@@ -72,6 +72,17 @@ func (ngs *NormalGameNetServer) SendByHeroId(hIdSlice []int32, msg *proto.TopMes
 	ngs.np.Send(gn.NewReplyMail(sendConn, msg))
 }
 
+//SendToAllPlayerConn 向所有的Player的Conn发送消息
+func (ngs *NormalGameNetServer) SendToAllPlayerConn(msg *proto.TopMessage) {
+	sendConn := make([]*net.Conn, 0)
+	for _, conn := range ngs.playerConn {
+		if conn != nil {
+			sendConn = append(sendConn, conn)
+		}
+	}
+	ngs.np.Send(gn.NewReplyMail(sendConn, msg))
+}
+
 func (ngs *NormalGameNetServer) SendByPlayerId(pIdSlice []int32, msg *proto.TopMessage) {
 	sendConn := make([]*net.Conn, 0)
 	for _, hId := range pIdSlice {

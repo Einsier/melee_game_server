@@ -90,10 +90,18 @@ func Encode(msg interface{}) *proto.TopMessage {
 		topMsg.TopMessageType = proto.TopMessageType_BroadcastType
 		topMsg.Broadcast = &broadcast
 		return topMsg
-	case *proto.HeroAttackBroadcast:
+	case *proto.HeroBulletLaunchBroadcast:
 		broadcast := proto.Broadcast{
-			BroadcastCode:       proto.BroadcastCode_HeroAttackBroadcastCode,
-			HeroAttackBroadcast: msg.(*proto.HeroAttackBroadcast),
+			BroadcastCode:             proto.BroadcastCode_HeroBulletLaunchBroadcastCode,
+			HeroBulletLaunchBroadcast: msg.(*proto.HeroBulletLaunchBroadcast),
+		}
+		topMsg.TopMessageType = proto.TopMessageType_BroadcastType
+		topMsg.Broadcast = &broadcast
+		return topMsg
+	case *proto.HeroSwordAttackBroadcast:
+		broadcast := proto.Broadcast{
+			BroadcastCode:            proto.BroadcastCode_HeroSwordAttackBroadcastCode,
+			HeroSwordAttackBroadcast: msg.(*proto.HeroSwordAttackBroadcast),
 		}
 		topMsg.TopMessageType = proto.TopMessageType_BroadcastType
 		topMsg.Broadcast = &broadcast
@@ -102,6 +110,22 @@ func Encode(msg interface{}) *proto.TopMessage {
 		broadcast := proto.Broadcast{
 			BroadcastCode:      proto.BroadcastCode_GameStartBroadcastCode,
 			GameStartBroadcast: msg.(*proto.GameStartBroadcast),
+		}
+		topMsg.TopMessageType = proto.TopMessageType_BroadcastType
+		topMsg.Broadcast = &broadcast
+		return topMsg
+	case *proto.HeroDeadBroadcast:
+		broadcast := proto.Broadcast{
+			BroadcastCode:     proto.BroadcastCode_HeroDeadBroadcastCode,
+			HeroDeadBroadcast: msg.(*proto.HeroDeadBroadcast),
+		}
+		topMsg.TopMessageType = proto.TopMessageType_BroadcastType
+		topMsg.Broadcast = &broadcast
+		return topMsg
+	case *proto.HeroBulletDestroyBroadcast:
+		broadcast := proto.Broadcast{
+			BroadcastCode:              proto.BroadcastCode_HeroBulletDestroyBroadcastCode,
+			HeroBulletDestroyBroadcast: msg.(*proto.HeroBulletDestroyBroadcast),
 		}
 		topMsg.TopMessageType = proto.TopMessageType_BroadcastType
 		topMsg.Broadcast = &broadcast

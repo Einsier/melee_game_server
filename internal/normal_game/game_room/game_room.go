@@ -1,10 +1,13 @@
 package game_room
 
 import (
+	"melee_game_server/api/proto"
 	configs "melee_game_server/configs/normal_game_type_configs"
 	"melee_game_server/framework/game_room"
+	"melee_game_server/internal/normal_game/codec"
 	gn "melee_game_server/internal/normal_game/game_net"
 	gt "melee_game_server/internal/normal_game/game_type"
+	"time"
 )
 
 /**
@@ -78,6 +81,9 @@ func (room *NormalGameRoom) Start() {
 	room.Status = configs.NormalGameWaitPlayerStatus
 	room.netServer.Start()
 	<-room.Prepare
+	//代码执行到这里,所有的玩家都已经准备好
+	time.Sleep(20 * time.Millisecond)                                                       //等待最后一个分配heroId的包到达
+	room.netServer.SendToAllPlayerConn(codec.Encode(&proto.GameStartBroadcast{HeroId: -1})) //发消息通知所有的玩家游戏开始
 	room.Status = configs.NormalGameStartStatus
 	<-room.leave
 	room.Status = configs.NormalGameGameDestroyingStatus

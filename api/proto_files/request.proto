@@ -10,10 +10,11 @@ message Request{
     PlayerQuitGameRequest           playerQuitGameRequest           = 3;
     HeroPositionReportRequest       heroPositionReportRequest       = 4;
     HeroMovementChangeRequest       heroMovementChangeRequest       = 5;
-    HeroAttackRequest               heroAttackRequest               = 6;
-    HeroGetPropRequest              heroGetPropRequest              = 7;
-    HeroBulletColliderHeroRequest   heroBulletColliderHeroRequest   = 8;
-    PlayerHeartBeatRequest          playerHeartBeatRequest          = 9;
+    HeroSwordAttackRequest          heroSwordAttackRequest          = 6;
+    HeroBulletLaunchRequest         heroBulletLaunchRequest         = 7;
+    HeroGetPropRequest              heroGetPropRequest              = 8;
+    HeroBulletColliderHeroRequest   heroBulletColliderHeroRequest   = 9;
+    PlayerHeartBeatRequest          playerHeartBeatRequest          = 10;
 }
 
 message PlayerEnterGameRequest{
@@ -28,19 +29,31 @@ message PlayerQuitGameRequest{
 
 message HeroPositionReportRequest{
     int32 heroId = 1;
-    Vector2 position = 2;
+    HeroMovementType heroMovementType = 2;
+    Vector2 position = 3;
+    int64  time = 4;
 }
 
 message HeroMovementChangeRequest{
     int32 heroId = 1;
     HeroMovementType heroMovementType = 2;
+    Vector2 position = 3;
+    int64  time = 4;
 }
 
-message HeroAttackRequest{
+message HeroBulletLaunchRequest{
+    int32          heroId = 1;          //保留,用于校验英雄发射子弹合法性
+    Vector2        position = 2;
+    Vector2        direction = 3;
+    int32          bulletIdByHero = 4;
+    int64          launchTime = 5;
+}
+
+message HeroSwordAttackRequest{
     int32          heroId = 1;
-    HeroAttackType heroAttackType = 2;
-    Vector2        position = 3;
-    Vector2        direction = 4;
+    Vector2        position = 2;
+    Vector2        direction = 3;
+    int64          attackTime = 4;
 }
 
 message HeroGetPropRequest{
@@ -49,13 +62,15 @@ message HeroGetPropRequest{
 }
 
 message HeroBulletColliderHeroRequest{
-    int32       heroId          = 1;
-    int32       bulletId        = 2;
-    int32       colliderHeroId  = 3;
+    //int32       heroId          = 1;
+    //int32       bulletId        = 2;
+    int64       bulletId        = 1;
+    int32       colliderHeroId  = 2;
+    int64       colliderTime    = 3;
 }
 
 message PlayerHeartBeatRequest{
-    int32       heroId          = 1;
-    int32       clientSendTime  = 2;
+    int32       playerId        = 1;
+    int64       clientSendTime  = 2;
 }
 

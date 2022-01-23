@@ -16,7 +16,7 @@ type Bullet struct {
 	HeroId         int32   //发射的Hero的id
 	BulletIdByHero int32   //某个Hero发射的第几个子弹(由前端提供)
 	CreateTime     int64   //客户端记录的发射的时间
-	DestroyTime    int64   //应该销毁的时间(放置占用过多内存)
+	DestroyTime    int64   //应该销毁的时间(防止占用过多内存)
 	CreatePosition Vector2 //客户端记录的发射的位置
 	Direction      Vector2 //客户端记录的发射的方向
 }

@@ -70,3 +70,10 @@ func (pm *PlayersManager) DeletePlayer(p *gt.Player) {
 	defer pm.lock.Unlock()
 	delete(pm.players, p.Id)
 }
+
+//UpdateHeartBeatTime 更新id为pid的玩家的心跳时间,t为unixNano的int64
+func (pm *PlayersManager) UpdateHeartBeatTime(pid int32, t int64) {
+	pm.lock.RLock()
+	defer pm.lock.RUnlock()
+	//ti := time.Unix()
+}

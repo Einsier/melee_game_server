@@ -2,7 +2,7 @@ package game_room
 
 import (
 	"melee_game_server/configs/normal_game_type_configs"
-	t "melee_game_server/internal/normal_game/game_type"
+	gt "melee_game_server/internal/normal_game/game_type"
 	"sync"
 	"time"
 )
@@ -22,7 +22,7 @@ type BulletsManager struct {
 }
 
 //AddBullets 将创建的bullet加入BulletsManager
-func (bm *BulletsManager) AddBullets(b *t.Bullet) {
+func (bm *BulletsManager) AddBullets(b *gt.Bullet) {
 	bm.bullets.Store(b.Id, b)
 	bm.refreshLock.Lock()
 	defer bm.refreshLock.Unlock()
@@ -46,6 +46,14 @@ func (bm *BulletsManager) RefreshBullets() {
 }
 
 //DeleteBullets 删除子弹
-func (bm *BulletsManager) DeleteBullets(id int64) {
-	bm.bullets.Delete(id)
+func (bm *BulletsManager) DeleteBullets(bid int64) {
+	bm.bullets.Delete(bid)
+}
+
+func (bm *BulletsManager) CheckBulletHitHero(bid int64, heroPosition gt.Vector2) bool {
+	b, ok := bm.bullets.Load(bid)
+	if !ok {
+		return false
+	}
+	return b.(*gt.Bullet).IsBulletHitHero(heroPosition)
 }

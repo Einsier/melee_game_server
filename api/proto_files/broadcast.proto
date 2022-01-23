@@ -5,15 +5,17 @@ import "consts.proto";
 import "struct.proto";
 
 message Broadcast{
-    BroadcastCode               broadcastCode                 = 1;
-    HeroChangeHealthBroadcast   heroChangeHealthBroadcast     = 2;
-    HeroMovementChangeBroadcast heroMovementChangeBroadcast   = 3;
-    HeroPositionReportBroadcast heroPositionReportBroadcast   = 4;
-    HeroPropDeleteBroadcast     heroPropDeleteBroadcast       = 5;
-    HeroPropAddBroadcast        heroPropAddBroadcast          = 6;
-    HeroAttackBroadcast         heroAttackBroadcast           = 7;
-    GameStartBroadcast          gameStartBroadcast            = 8;
-    //todo 游戏结束事件,英雄退出事件
+    BroadcastCode                   broadcastCode                 = 1;
+    HeroChangeHealthBroadcast       heroChangeHealthBroadcast     = 2;
+    HeroMovementChangeBroadcast     heroMovementChangeBroadcast   = 3;
+    HeroPositionReportBroadcast     heroPositionReportBroadcast   = 4;
+    HeroPropDeleteBroadcast         heroPropDeleteBroadcast       = 5;
+    HeroPropAddBroadcast            heroPropAddBroadcast          = 6;
+    HeroSwordAttackBroadcast        heroSwordAttackBroadcast      = 7;
+    HeroBulletLaunchBroadcast       heroBulletLaunchBroadcast     = 8;
+    GameStartBroadcast              gameStartBroadcast            = 9;
+    HeroDeadBroadcast               heroDeadBroadcast             = 10;
+    HeroBulletDestroyBroadcast      heroBulletDestroyBroadcast    = 11;
 }
 
 message HeroChangeHealthBroadcast{
@@ -22,13 +24,16 @@ message HeroChangeHealthBroadcast{
 }
 
 message HeroMovementChangeBroadcast{
-    int32 heroId      = 1;
-    int32 heroHealth  = 2;
+    int32            heroId            = 1;
+    HeroMovementType heroMovementType  = 2;
+    Vector2          heroPosition      = 3;
+    int64            time              = 4;
 }
 
 message HeroPositionReportBroadcast{
-    int32 heroId            = 1;
-    Vector2 heroPosition    = 2;
+    int32   heroId            = 1;
+    Vector2 heroPosition      = 2;
+    int64   time              = 3;
 }
 
 message HeroPropDeleteBroadcast{
@@ -38,15 +43,35 @@ message HeroPropDeleteBroadcast{
 message HeroPropAddBroadcast{
     int32 propId            = 1;
     Vector2 propPosition    = 2;
+    PropType propType       = 3;
 }
 
-message HeroAttackBroadcast{
-    int32 heroId                  = 1;
-    HeroAttackType heroAttackType = 2;
-    Vector2 position              = 3;
-    Vector2 direction             = 4;
+message HeroSwordAttackBroadcast{
+    int32 heroId        = 1;
+    Vector2 position    = 2;
+    Vector2 direction   = 3;
+    int64 time          = 4;
+}
+
+message HeroBulletLaunchBroadcast{
+    int64 bulletId          = 1;
+    Vector2 position        = 2;
+    Vector2 direction       = 3;
+    int64 time              = 4;
 }
 
 message GameStartBroadcast{
     int32 heroId = 1;   //没啥用
+}
+
+message GameOverBroadcast{
+    int64 time      = 1;
+}
+
+message HeroDeadBroadcast{
+    int32 heroId    = 1;
+}
+
+message HeroBulletDestroyBroadcast{
+    int64 bulletId  = 1;
 }

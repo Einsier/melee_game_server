@@ -11,8 +11,8 @@ import (
 *@Description:
  */
 
-func MaxInt32(i, j int32) int32 {
-	if i > j {
+func MinInt32(i, j int32) int32 {
+	if i < j {
 		return i
 	}
 	return j

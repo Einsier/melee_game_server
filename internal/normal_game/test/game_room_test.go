@@ -7,7 +7,7 @@ import (
 	framework "melee_game_server/framework/game_room"
 	"melee_game_server/internal/normal_game/codec"
 	gr "melee_game_server/internal/normal_game/game_room"
-	"melee_game_server/logger"
+	"melee_game_server/plugins/logger"
 	"testing"
 	"time"
 )

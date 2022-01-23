@@ -8,16 +8,16 @@ package game_room
  */
 
 func UpdateHeroPositionTimeEventCallback(gm *NormalGameRoom) {
-	/*	for _, hero := range gm.heroManager.heroes {
-		if hero.status == configs.HeroDead {
-			continue
-		}
-		nowTime := time.Now().UnixNano()
-		timeElapse := nowTime - hero.UpdateTime //距上次更新的间隔
-		hero.UpdateTime = nowTime
-		distance := float64(timeElapse) * configs.HeroMoveSpeed //移动的距离
-		newX := hero.GetPosition().X + distance*hero.GetDirection().X
-		newY := hero.GetDirection().Y + distance*hero.GetDirection().Y
-		gm.heroManager.MoveHeroPosition(hero.Id, gt.NewVector2(newX, newY))
-	}*/
+	/*		for _, hero := range gm.heroManager.heroes {
+			if hero.GetStatus() == configs.HeroDead {
+				continue
+			}
+			nowTime := time.Now().UnixNano()
+			timeElapse := nowTime - hero.updateTime //距上次更新的间隔
+			hero.updateTime = nowTime
+			distance := float64(timeElapse) * configs.HeroMoveSpeed //移动的距离
+			newX := hero.GetPosition().X + distance*hero.GetMoveStatus().X
+			newY := hero.GetMoveStatus().Y + distance*hero.GetMoveStatus().Y
+			gm.heroManager.MoveHeroPosition(hero.Id, gt.NewVector2(newX, newY))
+		}*/
 }

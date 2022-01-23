@@ -10,14 +10,14 @@ import "melee_game_server/api/proto"
  */
 
 type Prop struct {
-	id       int32
+	Id       int32
 	PropType proto.PropType
 	Position Vector2
 }
 
 func NewProp(id int32, propType proto.PropType, position Vector2) *Prop {
 	return &Prop{
-		id:       id,
+		Id:       id,
 		PropType: propType,
 		Position: position,
 	}

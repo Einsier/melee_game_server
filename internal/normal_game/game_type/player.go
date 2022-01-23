@@ -4,6 +4,7 @@ import (
 	configs "melee_game_server/configs/normal_game_type_configs"
 	"net"
 	"sync"
+	"time"
 )
 
 /**
@@ -14,14 +15,16 @@ import (
  */
 
 type Player struct {
-	Id         int32
-	HeroId     int32
-	Nickname   string //玩家昵称
-	Level      int    //玩家等级
-	Score      int    //玩家得分
-	Conn       *net.Conn
-	Status     int32 //玩家当前状态
-	statusLock sync.RWMutex
+	Id            int32
+	HeroId        int32
+	Nickname      string //玩家昵称
+	Level         int    //玩家等级
+	Score         int    //玩家得分
+	Conn          *net.Conn
+	Status        int32 //玩家当前状态
+	statusLock    sync.RWMutex
+	heartBeatTime time.Time
+	heartBeatLock sync.Mutex
 }
 
 //NewPlayer 如果该Player还没有登录游戏,则heroId应该为-1
@@ -52,4 +55,16 @@ func (p *Player) BindHeroId(hId int32) {
 
 func (p *Player) BindConn(conn *net.Conn) {
 	p.Conn = conn
+}
+
+func (p *Player) GetHeartBeatTime() time.Time {
+	p.heartBeatLock.Lock()
+	defer p.heartBeatLock.Unlock()
+	return p.heartBeatTime
+}
+
+func (p *Player) SetHeartBeatTime(t time.Time) {
+	p.heartBeatLock.Lock()
+	defer p.heartBeatLock.Unlock()
+	p.heartBeatTime = t
 }

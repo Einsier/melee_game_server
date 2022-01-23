@@ -16,10 +16,11 @@ enum RequestCode{
     PlayerQuitGameRequestCode           = 1;        //玩家退出游戏请求,需要回复
     HeroPositionReportRequestCode       = 2;        //Hero定期报告当前位置,不需要回复
     HeroMovementChangeRequestCode       = 3;        //Hero运动方向(例如本来向左走改为向右走/停下),不需要回复
-    HeroAttackRequestCode               = 4;        //Hero发动攻击(近战/发射子弹),不需要回复
-    HeroGetPropRequestCode              = 5;        //Hero得到道具请求,需要回复
-    HeroBulletColliderHeroRequestCode   = 6;        //一个Hero发射的子弹打击到另一个Hero的请求,不需要回复
-    PlayerHeartBeatRequestCode          = 7;        //玩家心跳请求,需要回复(用于延迟检测)
+    HeroSwordAttackRequestCode          = 4;        //Hero发动近战攻击请求,不需要回复
+    HeroBulletLaunchRequestCode         = 5;        //Hero发射子弹请求
+    HeroGetPropRequestCode              = 6;        //Hero得到道具请求,需要回复
+    HeroBulletColliderHeroRequestCode   = 7;        //一个Hero发射的子弹打击到另一个Hero的请求,不需要回复
+    PlayerHeartBeatRequestCode          = 8;        //玩家心跳请求,需要回复(用于延迟检测)
 }
 
 enum ResponseCode{
@@ -36,20 +37,23 @@ enum UnicastCode{
 }
 
 enum BroadcastCode{
-    //broadcast
+    //broadcast(10个)
     HeroChangeHealthBroadcastCode       = 0;       //某个Hero的血量发生变化,广播给全体玩家
     HeroMovementChangeBroadcastCode     = 1;       //某个Hero的运动方向发生变化
     HeroPositionReportBroadcastCode     = 2;       //某个Hero发来当前位置后,给全部其他玩家广播
     //HeroBulletDeleteBroadcastCode       = 3;       //通知全部玩家删除某个子弹
     HeroPropDeleteBroadcastCode         = 3;       //通知全部玩家删除某个Prop
     HeroPropAddBroadcastCode            = 4;       //通知全部玩家增加了某个道具
-    HeroAttackBroadcastCode             = 5;       //通知全部玩家某个玩家发起了攻击(近战/远程)
-    GameStartBroadcastCode              = 6;       //通知全部玩家游戏开始
+    HeroSwordAttackBroadcastCode        = 5;       //通知全部玩家某个玩家发起了近战攻击
+    HeroBulletLaunchBroadcastCode       = 6;       //通知全部玩家发射了子弹
+    GameStartBroadcastCode              = 7;       //通知全部玩家游戏开始
+    HeroDeadBroadcastCode               = 8;       //通知全部玩家某个玩家死亡
+    HeroBulletDestroyBroadcastCode      = 9;       //通知全部玩家某个子弹消失
 }
 
 enum PropType{
     StrawberryType                      = 0;        //草莓(加血)
-    TrapType                            = 1;        //陷阱(掉血)
+    TrapType                            = 1;        //陷阱(掉血)mvp1版本暂时取消
     BulletPocketType                    = 2;        //子弹带(可以发射子弹)
 }
 
@@ -61,10 +65,6 @@ enum HeroMovementType{
     HeroStopType = 4;           //停止
 }
 
-enum HeroAttackType{
-    HeroSwordAttackType = 0;    //英雄近战
-    HeroBulletAttackType = 1;   //英雄发射子弹
-}
 
 
 

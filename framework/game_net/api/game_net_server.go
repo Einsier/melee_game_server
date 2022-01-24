@@ -18,7 +18,7 @@ type GameNetServer interface {
 	Register(playerId, heroId int32, conn *net.Conn) //注册playerId,heroId,对应连接的对应关系
 	SendByHeroId(hId []int32, msg *proto.TopMessage)
 	SendByPlayerId(pId []int32, msg *proto.TopMessage)
-	Receive() *proto.TopMessage
+	Receive() *Mail
 	SendByConn(conn []*net.Conn, msg *proto.TopMessage)
 	SendBySingleConn(conn *net.Conn, msg *proto.TopMessage)
 }

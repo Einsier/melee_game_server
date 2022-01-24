@@ -95,6 +95,6 @@ func (ngs *NormalGameNetServer) SendByPlayerId(pIdSlice []int32, msg *proto.TopM
 }
 
 //Receive 如果没有消息则阻塞
-func (ngs *NormalGameNetServer) Receive() *proto.TopMessage {
-	return ngs.np.Receive().Msg
+func (ngs *NormalGameNetServer) Receive() *gn.Mail {
+	return ngs.np.Receive()
 }

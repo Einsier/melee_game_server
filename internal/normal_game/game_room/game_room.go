@@ -62,8 +62,8 @@ func (room *NormalGameRoom) Init(info *game_room.RoomInitInfo) {
 	room.PlayerNum = 0
 	room.Status = configs.NormalGameInitStatus
 	room.heroManager = NewHeroesManager()
-	//room.propsManager
-	//room.bulletsManager
+	room.propsManager = NewPropsManager()
+	room.bulletsManager = NewBulletsManager()
 	room.netServer = gn.NewNormalGameNetServer()
 	room.netServer.Init(room.port, configs.KcpRecvSize, configs.KcpSendSize)
 	room.playersManager = NewPlayersManager()
@@ -80,6 +80,7 @@ func (room *NormalGameRoom) Init(info *game_room.RoomInitInfo) {
 func (room *NormalGameRoom) Start() {
 	room.Status = configs.NormalGameWaitPlayerStatus
 	room.netServer.Start()
+	room.requestController.Work(room)
 	<-room.Prepare
 	//代码执行到这里,所有的玩家都已经准备好
 	time.Sleep(20 * time.Millisecond)                                                       //等待最后一个分配heroId的包到达

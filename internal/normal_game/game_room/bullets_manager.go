@@ -21,6 +21,15 @@ type BulletsManager struct {
 	refreshLock sync.Mutex //新旧更替的lock
 }
 
+func NewBulletsManager() *BulletsManager {
+	return &BulletsManager{
+		bullets:     sync.Map{},
+		oldBullets:  make([]int64, 0),
+		newBullets:  make([]int64, 0),
+		refreshLock: sync.Mutex{},
+	}
+}
+
 //AddBullets 将创建的bullet加入BulletsManager
 func (bm *BulletsManager) AddBullets(b *gt.Bullet) {
 	bm.bullets.Store(b.Id, b)

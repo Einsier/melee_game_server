@@ -3,7 +3,7 @@ package game_net
 import (
 	"melee_game_server/api/proto"
 	gn "melee_game_server/framework/game_net/api"
-	"melee_game_server/plugins/kcp_net/mailbox"
+	"melee_game_server/plugins/test_kcp_net"
 	"net"
 	"sync"
 )
@@ -19,14 +19,16 @@ import (
 //所以初步设计在SendByHeroId和SendByPlayerId中访问两个map不加锁,因为中间不会产生对map的增删操作
 type NormalGameNetServer struct {
 	np         gn.NetPlugin
-	heroConn   map[int32]*net.Conn
-	playerConn map[int32]*net.Conn
+	heroConn   map[int32]*net.Conn //key为heroId,value为联系方式
+	playerConn map[int32]*net.Conn //key为playerId,value为联系方式
 	port       string
 	lock       sync.Mutex
 }
 
 func NewNormalGameNetServer() *NormalGameNetServer {
-	kcpNet := mailbox.Mailbox{}
+	//todo 把测试的网络改成超写的kcp网络
+	//kcpNet := mailbox.Mailbox{}
+	kcpNet := test_kcp_net.NewTestKcpNet()
 	return &NormalGameNetServer{
 		np:         &kcpNet,
 		heroConn:   make(map[int32]*net.Conn),
@@ -76,9 +78,10 @@ func (ngs *NormalGameNetServer) SendByHeroId(hIdSlice []int32, msg *proto.TopMes
 func (ngs *NormalGameNetServer) SendToAllPlayerConn(msg *proto.TopMessage) {
 	sendConn := make([]*net.Conn, 0)
 	for _, conn := range ngs.playerConn {
-		if conn != nil {
-			sendConn = append(sendConn, conn)
-		}
+		//todo 删掉下面两行的注释
+		//if conn != nil {
+		sendConn = append(sendConn, conn)
+		//}
 	}
 	ngs.np.Send(gn.NewReplyMail(sendConn, msg))
 }
@@ -97,4 +100,13 @@ func (ngs *NormalGameNetServer) SendByPlayerId(pIdSlice []int32, msg *proto.TopM
 //Receive 如果没有消息则阻塞
 func (ngs *NormalGameNetServer) Receive() *gn.Mail {
 	return ngs.np.Receive()
+}
+
+//DeleteConn player退出游戏的时候删除player和hero的联系方式
+func (ngs *NormalGameNetServer) DeleteConn(hid, pid int32) {
+	ngs.lock.Lock()
+	defer ngs.lock.Unlock()
+	delete(ngs.playerConn, pid)
+	//todo 删除注释
+	//delete(ngs.heroConn, hid)
 }

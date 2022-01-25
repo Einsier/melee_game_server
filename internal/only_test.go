@@ -43,23 +43,6 @@ func getVector(times int) (x []gt.Vector2, y []gt.Vector2) {
 	return
 }
 
-/*func TestHeroes(t *testing.T) {
-	h1 := gt.NewHero(1, gt.Vector2Zero)
-	h2 := gt.NewHero(2, gt.Vector2Zero)
-	h3 := gt.NewHero(3, gt.Vector2Zero)
-	h4 := gt.NewHero(4, gt.Vector2Zero)
-	grm := game_room.NewGameRoomManager()
-	grm.AddHero(h1)
-	grm.AddHero(h2)
-	grm.AddHero(h3)
-	grm.AddHero(h4)
-
-	if grm.GetHero(1).Id != 1 {
-		t.Fatalf("get hero error")
-	}
-
-}
-*/
 func TestGetVector(t *testing.T) {
 	x, y := getVector(100000)
 	v := gt.NewVector2(0, 0)

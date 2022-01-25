@@ -25,7 +25,7 @@ func NewRequestController() (c *RequestController) {
 
 func (c *RequestController) Work(room *NormalGameRoom) {
 	for {
-		mail := room.netServer.Receive()
+		mail := <-room.TestRequestChan
 		h := c.register.GetHandler(int32(mail.Msg.Request.RequestCode))
 		if h != nil {
 			go h(mail, room)

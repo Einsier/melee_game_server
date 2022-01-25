@@ -18,7 +18,7 @@ import (
 *@Description:
  */
 
-//PlayerEnterGameRequestCallback 为请求的玩家申请一个heroId发给玩家,测试已完成(可见TestEnterGameRequest)
+//PlayerEnterGameRequestCallback 为请求的玩家申请一个heroId发给玩家,测试已完成(可见TestGameRequest)
 func PlayerEnterGameRequestCallback(msg *api.Mail, room *NormalGameRoom) {
 	resp := pb.PlayerEnterGameResponse{HeroId: int32(-1)} //如果是错误请求,返回heroId为-1
 
@@ -87,17 +87,25 @@ func PlayerEnterGameRequestCallback(msg *api.Mail, room *NormalGameRoom) {
 	room.GetNetServer().SendBySingleConn(msg.Conn, codec.Encode(&resp))
 }
 
-//PlayerQuitGameRequestCallback 玩家发来退出游戏请求时的相应,只是把当前游戏人数-1,不做hero有关的调整,不会删除hero todo:待测试
+//PlayerQuitGameRequestCallback 玩家发来退出游戏请求时的相应,只是把当前游戏人数-1,删除对应的hero和player的连接记录,不做hero有关的调整,不会删除hero,测试已完成(见TestGameRequest)
 func PlayerQuitGameRequestCallback(msg *api.Mail, room *NormalGameRoom) {
-	resp := pb.PlayerQuitGameResponse{Success: true} //如果是错误请求,返回heroId为-1
+	resp := pb.PlayerQuitGameResponse{Success: true} //如果是错误请求,同样返回true
 	req := msg.Msg.Request.PlayerQuitGameRequest
 	if room.Status == configs.NormalGameStartStatus {
 		pid := req.PlayerId
 		pm := room.GetPlayerManager()
 
 		pm.LeaveLock.Lock()
+
 		//获取用户信息状态,如果状态为已离开,不做处理,如果没有离开,则状态设为已离开并且判断是否所有玩家都离开
-		status := pm.GetPlayer(pid).GetStatus()
+		p := pm.GetPlayer(pid)
+		if p == nil {
+			pm.LeaveLock.Unlock()
+			room.GetNetServer().SendBySingleConn(msg.Conn, codec.Encode(&resp))
+			logger.Errorf("出现不属于本房间的玩家发送退出请求!playerId:%d", pid)
+			return
+		}
+		status := p.GetStatus()
 		if status == configs.PlayerLeaveGameStatus {
 			pm.LeaveLock.Unlock()
 			logger.Errorf("重复收到玩家离开消息,playerId:%d", pid)
@@ -109,11 +117,13 @@ func PlayerQuitGameRequestCallback(msg *api.Mail, room *NormalGameRoom) {
 		pm.LeaveLock.Unlock()
 		room.GetNetServer().SendBySingleConn(msg.Conn, codec.Encode(&resp))
 		n := atomic.AddInt32(&room.PlayerNum, -1)
-		logger.Infof("playerId为:%d,heroId为:%d的玩家已退出游戏\n", pid, req.HeroId)
+		room.GetNetServer().DeleteConn(req.HeroId, pid)
+		logger.Infof("playerId为:%d,heroId为:%d的玩家已退出游戏,当前剩余%d人\n", pid, req.HeroId, n)
 		if n == 0 {
 			//如果所有玩家都已经退出,则通知game_room
 			close(room.leave)
 		}
+		return
 	}
 	logger.Errorf("[PlayerQuitGameRequestCallback]在%d阶段收到了playerId:%d,heroId:%d,的QuitGame请求!\n", room.Status, req.PlayerId, req.HeroId)
 }

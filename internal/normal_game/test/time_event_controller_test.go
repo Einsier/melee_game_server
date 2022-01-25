@@ -56,7 +56,7 @@ func TestTimeEventController(t *testing.T) {
 	addPeopleEvent := game_room.NewTimeEvent(AddPeopleTimeEventCode, AddPeopleTimeEventSlice, AddPeopleTimeEventCallback, &room)
 	decPeopleEvent := game_room.NewTimeEvent(DecPeopleTimeEventCode, DecPeopleTimeEventSlice, DecPeopleTimeEventCallback, &room)
 	idleEvent := game_room.NewTimeEvent(IdleEventCode, IdleEventSlice, IdleEventCallback, &room)
-	c := game_room.NewTimeEventController()
+	c := game_room.NewTimeEventController(&room)
 	c.AddEvent(countPeopleEvent)
 	c.AddEvent(printTimeTimeEvent)
 	c.AddEvent(addPeopleEvent)

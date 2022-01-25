@@ -19,7 +19,7 @@ type TimeEvent struct {
 	Id       int32             //编号
 	slice    time.Duration     //间隔的时间
 	callback TimeEventCallback //执行的回调函数
-	room     *NormalGameRoom   //作为callBack的参数
+	//room     *NormalGameRoom   //作为callBack的参数
 }
 
 func NewTimeEvent(id int32, slice time.Duration, callback TimeEventCallback, room *NormalGameRoom) *TimeEvent {
@@ -27,7 +27,7 @@ func NewTimeEvent(id int32, slice time.Duration, callback TimeEventCallback, roo
 		Id:       id,
 		slice:    slice,
 		callback: callback,
-		room:     room,
+		//room:     room,
 	}
 }
 
@@ -35,14 +35,16 @@ type TimeEventController struct {
 	addPipe           chan *TimeEvent //存放要加入的timeEvent
 	cancelPipe        chan int32      //存放要取消的timeEvent的编号
 	timeEventCloseMap map[int32]chan interface{}
+	room              *NormalGameRoom
 }
 
 //NewTimeEventController 创建(并运行)一个NewTimeEventController
-func NewTimeEventController() *TimeEventController {
+func NewTimeEventController(room *NormalGameRoom) *TimeEventController {
 	c := &TimeEventController{
 		addPipe:           make(chan *TimeEvent),
 		cancelPipe:        make(chan int32),
 		timeEventCloseMap: make(map[int32]chan interface{}),
+		room:              room,
 	}
 	go c.manageEventPipe()
 	return c
@@ -64,7 +66,7 @@ func (c *TimeEventController) manageEventPipe() {
 		case event := <-c.addPipe:
 			closer := make(chan interface{})
 			c.timeEventCloseMap[event.Id] = closer
-			go handleEvent(event, closer)
+			go c.handleEvent(event, closer)
 		case id := <-c.cancelPipe:
 			closer, ok := c.timeEventCloseMap[id]
 			if ok {
@@ -74,12 +76,12 @@ func (c *TimeEventController) manageEventPipe() {
 	}
 }
 
-func handleEvent(event *TimeEvent, closer chan interface{}) {
+func (c *TimeEventController) handleEvent(event *TimeEvent, closer chan interface{}) {
 	ticker := time.Tick(event.slice)
 	for {
 		select {
 		case <-ticker:
-			event.callback(event.room)
+			event.callback(c.room)
 		case <-closer:
 			return
 		}

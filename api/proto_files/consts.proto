@@ -51,6 +51,7 @@ enum BroadcastCode{
     HeroBulletDestroyBroadcastCode      = 9;       //通知全部玩家某个子弹消失
 }
 
+//个人发现如果发送的信息的某个字段的枚举类型为0,则会忽略发送这个字段...不知道会不会是伏笔
 enum PropType{
     StrawberryType                      = 0;        //草莓(加血)
     TrapType                            = 1;        //陷阱(掉血)mvp1版本暂时取消

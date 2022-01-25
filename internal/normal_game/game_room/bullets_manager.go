@@ -1,10 +1,8 @@
 package game_room
 
 import (
-	"melee_game_server/configs/normal_game_type_configs"
 	gt "melee_game_server/internal/normal_game/game_type"
 	"sync"
-	"time"
 )
 
 /**
@@ -36,22 +34,6 @@ func (bm *BulletsManager) AddBullets(b *gt.Bullet) {
 	bm.refreshLock.Lock()
 	defer bm.refreshLock.Unlock()
 	bm.newBullets = append(bm.newBullets, b.Id)
-}
-
-//RefreshBullets 定期删除需要清理的Bullets
-//todo 改成注册到TimeEvent中的形式
-func (bm *BulletsManager) RefreshBullets() {
-	for {
-		time.Sleep(normal_game_type_configs.BulletRefreshTime)
-		bm.refreshLock.Lock()
-		bm.oldBullets = bm.newBullets
-		bm.newBullets = make([]int64, 0)
-		bm.refreshLock.Unlock()
-
-		for _, id := range bm.oldBullets {
-			bm.bullets.Delete(id)
-		}
-	}
 }
 
 //DeleteBullets 删除子弹

@@ -58,7 +58,7 @@ func (client *SimuClient) Start() {
 	}()
 }
 
-// 玩家进入游戏
+// PlayerEnterGame 玩家进入游戏
 func (client *SimuClient) PlayerEnterGame() {
 	// 封装请求
 	req := codec.EncodeRequest(&proto.PlayerEnterGameRequest{
@@ -68,7 +68,7 @@ func (client *SimuClient) PlayerEnterGame() {
 	adapter.Send(&client.conn, req)
 }
 
-// 玩家退出游戏
+// PlayerQuitGame 玩家退出游戏
 func (client *SimuClient) PlayerQuitGame() {
 	req := codec.EncodeRequest(&proto.PlayerQuitGameRequest{
 		HeroId:   client.heroId,
@@ -77,7 +77,7 @@ func (client *SimuClient) PlayerQuitGame() {
 	adapter.Send(&client.conn, req)
 }
 
-// 英雄位置同步
+// HeroPositionReport 英雄位置同步
 func (client *SimuClient) HeroPositionReport() {
 	req := codec.EncodeRequest(&proto.HeroPositionReportRequest{
 		HeroId:           client.heroId,
@@ -88,18 +88,18 @@ func (client *SimuClient) HeroPositionReport() {
 	adapter.Send(&client.conn, req)
 }
 
-// 随机改变英雄位置
+//changeHeroPositionByRandom 随机改变英雄位置
 func (client *SimuClient) changeHeroPositionByRandom() {
 	client.position = &proto.Vector2{X: randomFloat(0, 1), Y: randomFloat(0, 1)}
 }
 
-// 获取随机浮点数
+//randomFloat 获取随机浮点数
 func randomFloat(min, max float32) float32 {
 	rand.Seed(time.Now().UnixNano())
 	return min + rand.Float32()*(max-min)
 }
 
-// 英雄移动状态改变
+//HeroMovementChange 英雄移动状态改变
 func (client *SimuClient) HeroMovementChange(heroMovementType *proto.HeroMovementType) {
 	client.heroMovementType = heroMovementType
 	client.changeHeroPositionByRandom()
@@ -112,7 +112,7 @@ func (client *SimuClient) HeroMovementChange(heroMovementType *proto.HeroMovemen
 	adapter.Send(&client.conn, req)
 }
 
-// 英雄近战攻击
+//HeroSwordAttack 英雄近战攻击
 func (client *SimuClient) HeroSwordAttack() {
 	req := codec.EncodeRequest(&proto.HeroSwordAttackRequest{
 		//todo
@@ -120,7 +120,7 @@ func (client *SimuClient) HeroSwordAttack() {
 	adapter.Send(&client.conn, req)
 }
 
-// 英雄发射子弹
+//HeroBulletLaunch 英雄发射子弹
 func (client *SimuClient) HeroBulletLaunch(direction *proto.Vector2) {
 	client.bulletIdByHero++
 	client.changeHeroPositionByRandom()
@@ -133,7 +133,7 @@ func (client *SimuClient) HeroBulletLaunch(direction *proto.Vector2) {
 	adapter.Send(&client.conn, req)
 }
 
-// 英雄获取道具
+//HeroGetProp 英雄获取道具
 func (client *SimuClient) HeroGetProp() {
 	req := codec.EncodeRequest(&proto.HeroGetPropRequest{
 		HeroId: client.heroId,
@@ -142,7 +142,7 @@ func (client *SimuClient) HeroGetProp() {
 	adapter.Send(&client.conn, req)
 }
 
-// 英雄被子弹打中
+//HeroBulletColliderHero 英雄被子弹打中
 func (client *SimuClient) HeroBulletColliderHero() {
 	req := codec.EncodeRequest(&proto.HeroBulletColliderHeroRequest{
 		//todo
@@ -150,7 +150,7 @@ func (client *SimuClient) HeroBulletColliderHero() {
 	adapter.Send(&client.conn, req)
 }
 
-// 玩家心跳检测
+//PlayerHeartBeat 玩家心跳检测
 func (client *SimuClient) PlayerHeartBeat() {
 	req := codec.EncodeRequest(&proto.PlayerHeartBeatRequest{
 		PlayerId:       client.playerId,
@@ -159,7 +159,7 @@ func (client *SimuClient) PlayerHeartBeat() {
 	adapter.Send(&client.conn, req)
 }
 
-// 处理服务器发来的消息
+// ReceiveHandle 处理服务器发来的消息
 func (client *SimuClient) ReceiveHandle() {
 	for {
 		msg := adapter.Receive(&client.conn)

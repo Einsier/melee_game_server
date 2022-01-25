@@ -146,6 +146,14 @@ func EncodeRequest(msg interface{}) *proto.TopMessage {
 		topMsg.TopMessageType = proto.TopMessageType_RequestType
 		topMsg.Request = &req
 		return topMsg
+	case *proto.PlayerQuitGameRequest:
+		req := proto.Request{
+			RequestCode:           proto.RequestCode_PlayerQuitGameRequestCode,
+			PlayerQuitGameRequest: msg.(*proto.PlayerQuitGameRequest),
+		}
+		topMsg.TopMessageType = proto.TopMessageType_RequestType
+		topMsg.Request = &req
+		return topMsg
 	}
 	return nil
 }

@@ -7,4 +7,10 @@ package normal_game_type_configs
 *@Description:游戏道具信息的配置
  */
 
-const PropRefreshTime = 1 //刷新间隔为1s
+const PropRefreshTime = 1000000000 //单位为ns,即刷新间隔为1s
+const PropRefreshNumPerTime = 3    //每次刷新的个数
+
+const (
+	PropWidth  = 0.5
+	PropHeight = 0.5
+)

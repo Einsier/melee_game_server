@@ -2,6 +2,7 @@ package utils
 
 import (
 	"math"
+	"math/rand"
 )
 
 /**
@@ -20,4 +21,13 @@ func MinInt32(i, j int32) int32 {
 
 func FloatEqual(i, j float64) bool {
 	return math.Abs(i-j) < 10e-8
+}
+
+//RandomFloat64 随机生成一个min到max的float64的数
+func RandomFloat64(min, max float64) float64 {
+	return min + rand.Float64()*(max-min)
+}
+
+func RandomInt32(min, max int32) int32 {
+	return rand.Int31n(max-min) + min
 }

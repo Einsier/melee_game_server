@@ -4,6 +4,7 @@ import (
 	pb "melee_game_server/api/proto"
 	gt "melee_game_server/internal/normal_game/game_type"
 	"sync"
+	"sync/atomic"
 )
 
 /**
@@ -24,6 +25,10 @@ func NewPropsManager() *PropsManager {
 		props:     make(map[int32]*gt.Prop),
 		idCounter: 0,
 	}
+}
+
+func (m *PropsManager) GetId() int32 {
+	return atomic.AddInt32(&m.idCounter, 1)
 }
 
 func (m *PropsManager) AddProp(p *gt.Prop) {
@@ -48,9 +53,4 @@ func (m *PropsManager) EatProp(id int32) (pb.PropType, bool) {
 	}
 	delete(m.props, id)
 	return p.PropType, true
-}
-
-//AddRandomProp 可以作为time_event_callback
-func (m *PropsManager) AddRandomProp() {
-
 }

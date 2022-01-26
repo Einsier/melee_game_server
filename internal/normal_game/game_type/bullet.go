@@ -59,5 +59,5 @@ func CountBulletId(heroId, BulletIdByHero int32) int64 {
 
 //IsBulletHitHero todo 子弹是否击中英雄,heroMid英雄的中心坐标
 func (b *Bullet) IsBulletHitHero(heroMid Vector2) bool {
-	return false
+	return true
 }

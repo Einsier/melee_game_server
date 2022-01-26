@@ -5,6 +5,7 @@ import (
 	configs "melee_game_server/configs/normal_game_type_configs"
 	"melee_game_server/internal/normal_game/codec"
 	gt "melee_game_server/internal/normal_game/game_type"
+	"melee_game_server/plugins/logger"
 	"melee_game_server/utils"
 	"time"
 )
@@ -16,16 +17,8 @@ import (
 *@Description:用于注册定时事件
  */
 
-var CleanOverTimeBulletTimeEvent = TimeEvent{
-	Id:       CleanOverTimeBulletTimeEventCallbackId,
-	slice:    time.Nanosecond * CleanOverTimeBulletTimeEventCallbackTimeSlice,
-	callback: CleanOverTimeBulletTimeEventCallback,
-}
-var RefreshPropsTimeEvent = TimeEvent{
-	Id:       RefreshPropsTimeEventCallbackId,
-	slice:    time.Nanosecond * RefreshPropsTimeEventCallbackTimeSlice,
-	callback: RefreshPropsTimeEventCallback,
-}
+var CleanOverTimeBulletTimeEvent = NewTimeEvent(CleanOverTimeBulletTimeEventCallbackId, time.Nanosecond*CleanOverTimeBulletTimeEventCallbackTimeSlice, CleanOverTimeBulletTimeEventCallback)
+var RefreshPropsTimeEvent = NewTimeEvent(RefreshPropsTimeEventCallbackId, time.Nanosecond*RefreshPropsTimeEventCallbackTimeSlice, RefreshPropsTimeEventCallback)
 
 const (
 	CleanOverTimeBulletTimeEventCallbackId = iota
@@ -42,11 +35,16 @@ const (
 func CleanOverTimeBulletTimeEventCallback(room *NormalGameRoom) {
 	bm := room.GetBulletsManager()
 	bm.refreshLock.Lock()
+	deleteBullet := bm.oldBullets
 	bm.oldBullets = bm.newBullets
 	bm.newBullets = make([]int64, 0)
 	bm.refreshLock.Unlock()
 
-	for _, id := range bm.oldBullets {
+	for _, id := range deleteBullet {
+		//todo 测试用,待删除
+		hid, bid := countHidBid(id)
+		t := time.Now().Format(time.StampNano)
+		logger.Testf("[%s]删除了hero[%d]的第[%d]颗子弹", t, hid, bid)
 		bm.bullets.Delete(id)
 	}
 }

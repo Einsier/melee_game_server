@@ -3,7 +3,7 @@
 
 
 玩法包括:
-* 根据地图地形(包括树木,池塘,房子等)2D移动+近战攻击
+* 根据2D移动+近战攻击
 * 拾取地图上的增益道具
 * 拾取到子弹包后可以发射子弹,攻击其他玩家
 * 玩家血量管理
@@ -28,9 +28,7 @@ game_room等待全部(configs.MaxNormalGamePlayerNum个)玩家进入,并且校�
 并且内部存有若干个游戏有关的对象,以对当前的游戏地图,玩家,道具等进行管理.在game_room这一层 使用事件驱动(从被分配的game_room端口监听kcp)模型,
 当有kcp报文来时译码,并根据报文的内容选择相应的消息处理函数进行处理.
 
-![image-20220116234555998](C:\Users\Administrator\Desktop\melee_game_server\internal\normal_game\image-20220116234555998.png)
-
-
+![image-20220126021527975](C:\Users\Administrator\Desktop\melee_game_server\internal\normal_game\image-20220126021527975.png)
 
 2022/1/22
 
@@ -73,3 +71,7 @@ game_room等待全部(configs.MaxNormalGamePlayerNum个)玩家进入,并且校�
     2.玩家a的前端暂时不渲染子弹消失特效,而是生成并发送一个HeroBulletColliderHeroRequest,其中包括被碰撞的heroId,自己的int64的子弹id,碰撞时间.后端结合子弹位置和被撞击的英雄的位置进行校验,如果碰撞有效,则给玩家a单播一个碰撞有效,给其它玩家广播一个子弹消失+英雄掉血广播.如果无效,不发送任何消息.
 
     3.全部玩家收到子弹消失广播,直接将广播中带的int64的子弹id为key从前端子弹map中取出子弹并删除.子弹在玩家视野里消失.
+
+* mvp1玩家同步逻辑:
+  * 玩家a按下方向键或者松开方向键(或者长时间没有按键变换),unity检测到,记录客户端当前时间以及玩家按键,发送ChangeMovementTypeRequest(或者ReportHeroPositionRequest)给服务器
+  * 服务器将信息原封不动的转发给客户端,客户端通过这两个参数每一帧更新玩家a的位置信息.

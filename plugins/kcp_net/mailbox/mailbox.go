@@ -31,7 +31,7 @@ type Mailbox struct {
 	sendMQ    mq.MsgQueue
 	//记录客户端Conn和与之对应chan的map。
 	//将要从指定Conn发送的消息将会首先被放入对应的chan中
-	channels map[*net.Conn]chan *pb.TopMessage
+	channels map[net.Conn]chan *pb.TopMessage
 }
 
 /*
@@ -77,10 +77,10 @@ func (box *Mailbox) Start() error {
 		//存放将要从这个连接发送出去的消息
 		channel := make(chan *pb.TopMessage, 1)
 		//在map中注册连接和通道的对应关系
-		box.channels[&conn] = channel
+		box.channels[conn] = channel
 		//为新建立的连接启动收发消息的goroutine
-		go box.receiveHandler(&conn)
-		go box.sendHandler(&conn)
+		go box.receiveHandler(conn)
+		go box.sendHandler(conn)
 	}
 }
 
@@ -154,7 +154,7 @@ func (box *Mailbox) sendMQHandler() {
  *功能:
  *	接受连接中的消息,封装成为Mail对象，存放到box.receiveMQ中
  */
-func (box *Mailbox) receiveHandler(connPtr *net.Conn) *pb.TopMessage {
+func (box *Mailbox) receiveHandler(connPtr net.Conn) *pb.TopMessage {
 	for {
 		msg := adapter.Receive(connPtr)
 		mail := api.Mail{Conn: connPtr, Msg: msg}
@@ -168,7 +168,7 @@ func (box *Mailbox) receiveHandler(connPtr *net.Conn) *pb.TopMessage {
  *功能:
  *	将派送到通道中的消息真正地从连接中发送出去
  */
-func (box *Mailbox) sendHandler(connPtr *net.Conn) {
+func (box *Mailbox) sendHandler(connPtr net.Conn) {
 	channel := box.channels[connPtr]
 	for {
 		reply := <-channel

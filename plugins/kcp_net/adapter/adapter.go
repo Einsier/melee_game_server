@@ -12,9 +12,9 @@ const (
 	bufferSize int32 = 1024
 )
 
-func Send(conn *net.Conn, msg *pb.TopMessage) {
+func Send(conn net.Conn, msg *pb.TopMessage) {
 	cMsg := codec2.Code(msg)
-	count, err := (*conn).Write(cMsg)
+	count, err := conn.Write(cMsg)
 	if err != nil {
 		log.Println("Usage:Send()调用失败，错误信息:", err)
 	} else {
@@ -22,9 +22,9 @@ func Send(conn *net.Conn, msg *pb.TopMessage) {
 	}
 }
 
-func Receive(conn *net.Conn) *pb.TopMessage {
+func Receive(conn net.Conn) *pb.TopMessage {
 	buffer := make([]byte, bufferSize)
-	count, err := (*conn).Read(buffer)
+	count, err := conn.Read(buffer)
 	if err != nil {
 		log.Println(err)
 		return nil

@@ -13,16 +13,16 @@ import (
  */
 
 type Mail struct {
-	Conn *net.Conn
+	Conn net.Conn
 	Msg  *pb.TopMessage
 }
 
 type ReplyMail struct {
-	ConnSlice []*net.Conn
+	ConnSlice []net.Conn
 	Msg       *pb.TopMessage
 }
 
-func NewReplyMail(connSlice []*net.Conn, msg *pb.TopMessage) *ReplyMail {
+func NewReplyMail(connSlice []net.Conn, msg *pb.TopMessage) *ReplyMail {
 	return &ReplyMail{
 		ConnSlice: connSlice,
 		Msg:       msg,

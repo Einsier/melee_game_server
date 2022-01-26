@@ -19,8 +19,8 @@ import (
 //所以初步设计在SendByHeroId和SendByPlayerId中访问两个map不加锁,因为中间不会产生对map的增删操作
 type NormalGameNetServer struct {
 	np         gn.NetPlugin
-	heroConn   map[int32]*net.Conn //key为heroId,value为联系方式
-	playerConn map[int32]*net.Conn //key为playerId,value为联系方式
+	heroConn   map[int32]net.Conn //key为heroId,value为联系方式
+	playerConn map[int32]net.Conn //key为playerId,value为联系方式
 	port       string
 	lock       sync.Mutex
 }
@@ -31,8 +31,8 @@ func NewNormalGameNetServer() *NormalGameNetServer {
 	kcpNet := test_kcp_net.NewTestKcpNet()
 	return &NormalGameNetServer{
 		np:         &kcpNet,
-		heroConn:   make(map[int32]*net.Conn),
-		playerConn: make(map[int32]*net.Conn),
+		heroConn:   make(map[int32]net.Conn),
+		playerConn: make(map[int32]net.Conn),
 		lock:       sync.Mutex{},
 	}
 }
@@ -47,24 +47,24 @@ func (ngs *NormalGameNetServer) Start() {
 	}
 }
 
-func (ngs *NormalGameNetServer) Register(playerId, heroId int32, conn *net.Conn) {
+func (ngs *NormalGameNetServer) Register(playerId, heroId int32, conn net.Conn) {
 	ngs.lock.Lock()
 	defer ngs.lock.Unlock()
 	ngs.playerConn[playerId] = conn
 	ngs.heroConn[heroId] = conn
 }
 
-func (ngs *NormalGameNetServer) SendBySingleConn(conn *net.Conn, msg *proto.TopMessage) {
-	s := []*net.Conn{conn}
+func (ngs *NormalGameNetServer) SendBySingleConn(conn net.Conn, msg *proto.TopMessage) {
+	s := []net.Conn{conn}
 	ngs.np.Send(gn.NewReplyMail(s, msg))
 }
 
-func (ngs *NormalGameNetServer) SendByConn(conn []*net.Conn, msg *proto.TopMessage) {
+func (ngs *NormalGameNetServer) SendByConn(conn []net.Conn, msg *proto.TopMessage) {
 	ngs.np.Send(gn.NewReplyMail(conn, msg))
 }
 
 func (ngs *NormalGameNetServer) SendByHeroId(hIdSlice []int32, msg *proto.TopMessage) {
-	sendConn := make([]*net.Conn, 0)
+	sendConn := make([]net.Conn, 0)
 	for _, hId := range hIdSlice {
 		conn := ngs.heroConn[hId]
 		if conn != nil {
@@ -76,18 +76,17 @@ func (ngs *NormalGameNetServer) SendByHeroId(hIdSlice []int32, msg *proto.TopMes
 
 //SendToAllPlayerConn 向所有的Player的Conn发送消息
 func (ngs *NormalGameNetServer) SendToAllPlayerConn(msg *proto.TopMessage) {
-	sendConn := make([]*net.Conn, 0)
+	sendConn := make([]net.Conn, 0)
 	for _, conn := range ngs.playerConn {
-		//todo 删掉下面两行的注释
-		//if conn != nil {
-		sendConn = append(sendConn, conn)
-		//}
+		if conn != nil {
+			sendConn = append(sendConn, conn)
+		}
 	}
 	ngs.np.Send(gn.NewReplyMail(sendConn, msg))
 }
 
 func (ngs *NormalGameNetServer) SendByPlayerId(pIdSlice []int32, msg *proto.TopMessage) {
-	sendConn := make([]*net.Conn, 0)
+	sendConn := make([]net.Conn, 0)
 	for _, hId := range pIdSlice {
 		conn := ngs.heroConn[hId]
 		if conn != nil {
@@ -107,6 +106,5 @@ func (ngs *NormalGameNetServer) DeleteConn(hid, pid int32) {
 	ngs.lock.Lock()
 	defer ngs.lock.Unlock()
 	delete(ngs.playerConn, pid)
-	//todo 删除注释
-	//delete(ngs.heroConn, hid)
+	delete(ngs.heroConn, hid)
 }

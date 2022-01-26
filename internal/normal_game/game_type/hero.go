@@ -46,20 +46,23 @@ func (h *Hero) GetPosition() Vector2 {
 
 	ct := time.Now().UnixNano()
 	//运算逻辑: hero的客户端上次向服务器汇报的位置 + (当前运动状态(例如向上运动为(0,1)) * 上次汇报距离现在过了多长时间 * 英雄运动速度)
-	return h.position.Add(h.moveStatus.MultiplyScalar(float64(h.updateTime-ct) * configs.HeroMoveSpeed))
+	p := h.position.Add(h.moveStatus.MultiplyScalar(float64(h.updateTime-ct) * configs.HeroMoveSpeed))
+	utils.TransNaN(&p.X)
+	utils.TransNaN(&p.Y)
+	return p
 }
 
 //GetMoveStatus 获取当前英雄的运动状态
 func (h *Hero) GetMoveStatus() Vector2 {
 	h.movementLock.RLock()
-	defer h.movementLock.Unlock()
+	defer h.movementLock.RUnlock()
 	return h.moveStatus
 }
 
 //GetHealth 获取当前Hero的health
 func (h *Hero) GetHealth() int32 {
 	h.healthLock.RLock()
-	defer h.healthLock.Unlock()
+	defer h.healthLock.RUnlock()
 	return h.Health
 }
 
@@ -107,7 +110,7 @@ func (h *Hero) SetStatus(s int32) {
 
 func (h *Hero) GetStatus() int32 {
 	h.statusLock.RLock()
-	defer h.statusLock.Unlock()
+	defer h.statusLock.RUnlock()
 	return h.status
 }
 

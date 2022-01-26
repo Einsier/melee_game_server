@@ -31,3 +31,10 @@ func RandomFloat64(min, max float64) float64 {
 func RandomInt32(min, max int32) int32 {
 	return rand.Int31n(max-min) + min
 }
+
+//TransNaN 有时运算结果太小产生的NaN变成0
+func TransNaN(f *float64) {
+	if math.IsNaN(*f) {
+		*f = 0
+	}
+}

@@ -8,6 +8,8 @@ import (
 	"melee_game_server/internal/normal_game/codec"
 	gr "melee_game_server/internal/normal_game/game_room"
 	"melee_game_server/plugins/logger"
+	"melee_game_server/utils"
+	"sync/atomic"
 	"testing"
 	"time"
 )
@@ -28,16 +30,56 @@ var TestEnterGameRequestWrongSlice = make([]*api.Mail, 0)
 var TestQuitGameRequestRightSlice = make([]*api.Mail, 0)
 var TestQuitGameRequestWrongSlice = make([]*api.Mail, 0)
 
+const PrintHeroInfoCallbackId = 1000
+
+func PrintHeroInfoCallback(room *gr.NormalGameRoom) {
+	for i := int32(1); i <= configs.MaxNormalGamePlayerNum; i++ {
+		h := room.GetHeroesManager().GetHero(i)
+		logger.Testf("[%d]moveStatus:%v, position:%v, health:%d, status:%d", h.Id, h.GetMoveStatus(), h.GetPosition(), h.GetHealth(), h.GetStatus())
+	}
+}
+
+var PrintHeroInfoTimeEvent = gr.NewTimeEvent(PrintHeroInfoCallbackId, 3*time.Second, PrintHeroInfoCallback)
+
 func NewEnterGameRequestTopMsg(pid int32, rid int32) *proto.TopMessage {
 	return codec.EncodeRequest(&proto.PlayerEnterGameRequest{
 		PlayerId:   pid,
 		GameRoomId: rid,
 	})
 }
+
 func NewQuitGameRequestTopMsg(pid int32) *proto.TopMessage {
 	return codec.EncodeRequest(&proto.PlayerQuitGameRequest{
 		PlayerId: pid,
 		HeroId:   -1,
+	})
+}
+
+func NewBulletLaunchRequestTopMsg(hid, bIdByHero int32, launchTime int64, position, direction *proto.Vector2) *proto.TopMessage {
+	return codec.EncodeRequest(&proto.HeroBulletLaunchRequest{
+		HeroId:         hid,
+		Position:       position,
+		Direction:      direction,
+		BulletIdByHero: bIdByHero,
+		LaunchTime:     launchTime,
+	})
+}
+
+func NewHeroMovementChangeRequestTopMsg(hid int32, movementType proto.HeroMovementType, p *proto.Vector2, t int64) *proto.TopMessage {
+	return codec.EncodeRequest(&proto.HeroMovementChangeRequest{
+		HeroId:           hid,
+		HeroMovementType: movementType,
+		Position:         p,
+		Time:             t,
+	})
+}
+
+func NewHeroPositionReportRequestTopMsg(hid int32, movementType proto.HeroMovementType, p *proto.Vector2, t int64) *proto.TopMessage {
+	return codec.EncodeRequest(&proto.HeroPositionReportRequest{
+		HeroId:           hid,
+		HeroMovementType: movementType,
+		Position:         p,
+		Time:             t,
 	})
 }
 
@@ -58,8 +100,12 @@ func testInit() {
 		wrongEnterMsg2 := NewEnterGameRequestTopMsg(pId+20000, TestRoomId) //错误的进入游戏的请求(Pid不在GameServer传入的PlayerInfo中)
 		wrongEnterMsg3 := NewEnterGameRequestTopMsg(pId, TestRoomId+1)     //错误的进入游戏的请求(RoomId错误)
 		rightEnterMail := api.Mail{
-			Conn: nil,
-			Msg:  rightEnterMsg,
+			Conn: MyNetConn{
+				hid: i + 1,
+				pid: pId,
+				msg: "",
+			},
+			Msg: rightEnterMsg,
 		}
 		rightEnterMailDup := api.Mail{
 			Conn: nil,
@@ -117,7 +163,7 @@ func testInit() {
 	}
 }
 
-//TestEnterGameRequest 测试登录的时候有很多个假的请求和很多个真的请求的情况
+//TestEnterGameRequest 测试所有请求能否按照预期收发
 func TestGameRequest(t *testing.T) {
 	logger.SetLogLevel(logger.LogInfoLevel) //打印正常游戏过程的日志
 	logger.SetLogLevelToTestOnly()          //打印测试日志
@@ -131,6 +177,38 @@ func TestGameRequest(t *testing.T) {
 	}
 	room.Init(&TestRoomInitInfo)
 	go room.Start()
+	//测试玩家进入游戏
+	EnterGameRequestTest(t, room)
+
+	//注册打印英雄信息事件
+	room.GetTimeEventController().AddEvent(PrintHeroInfoTimeEvent)
+
+	//模拟玩家发送位置信息,发射子弹,汇报位置信息等
+	GameRequestTest(t, room)
+
+	//测试玩家退出游戏
+	QuitGameRequestTest(room)
+	time.Sleep(12 * time.Second)
+}
+
+func QuitGameRequestTest(room *gr.NormalGameRoom) {
+	//把正确的退出消息投送到消息处理管道中
+	go func() {
+		for _, mail := range TestQuitGameRequestRightSlice {
+			time.Sleep(1000 * time.Millisecond)
+			room.TestRequestChan <- mail
+		}
+	}()
+	//把错误的退出消息投送到消息处理管道中
+	go func() {
+		for _, mail := range TestQuitGameRequestWrongSlice {
+			time.Sleep(200 * time.Millisecond)
+			room.TestRequestChan <- mail
+		}
+	}()
+}
+
+func EnterGameRequestTest(t *testing.T, room *gr.NormalGameRoom) {
 	//把正确消息投送到消息处理管道中
 	go func() {
 		for _, mail := range TestEnterGameRequestRightSlice {
@@ -167,24 +245,71 @@ func TestGameRequest(t *testing.T) {
 	if len(res) != 0 {
 		t.Fatalf("not all heroId distributed!,left:%v", res)
 	}
-
-	//把正确的退出消息投送到消息处理管道中
-	go func() {
-		for _, mail := range TestQuitGameRequestRightSlice {
-			time.Sleep(1000 * time.Millisecond)
-			room.TestRequestChan <- mail
-		}
-	}()
-	//把错误的退出消息投送到消息处理管道中
-	go func() {
-		for _, mail := range TestQuitGameRequestWrongSlice {
-			time.Sleep(200 * time.Millisecond)
-			room.TestRequestChan <- mail
-		}
-	}()
-	time.Sleep(12 * time.Second)
 }
 
-func TestPlayerQuit(t *testing.T) {
+type FakeHero struct {
+	Id           int32
+	Position     *proto.Vector2
+	MovementType proto.HeroMovementType
+	Bid          int32
+	MsgQueue     chan *api.Mail
+}
 
+func GameRequestTest(t *testing.T, room *gr.NormalGameRoom) {
+	for i := int32(1); i <= configs.MaxNormalGamePlayerNum; i++ {
+		NewFakeHero(i, room.TestRequestChan)
+	}
+	time.Sleep(10 * time.Second)
+}
+
+func NewFakeHero(id int32, msgQueue chan *api.Mail) {
+	fh := FakeHero{
+		Id:           id,
+		Position:     &proto.Vector2{X: 0, Y: 0},
+		MovementType: proto.HeroMovementType_HeroStopType,
+		MsgQueue:     msgQueue,
+	}
+	go fh.ChangeMovementType()
+	go fh.LaunchBullet()
+	go fh.ReportHeroPosition()
+}
+
+func (h *FakeHero) LaunchBullet() {
+	for {
+		time.Sleep(1000 * time.Millisecond)
+		t := time.Now().UnixNano()
+		bid := atomic.AddInt32(&h.Bid, 1)
+		msg1 := NewBulletLaunchRequestTopMsg(h.Id, bid, t, h.Position, &proto.Vector2{X: 1, Y: 0})
+		h.MsgQueue <- &api.Mail{
+			Conn: nil,
+			Msg:  msg1,
+		}
+	}
+}
+
+//ChangePosition 为了测试方便,仅支持左右移动(从x轴上移动）
+func (h *FakeHero) ChangeMovementType() {
+	for {
+		time.Sleep(2000 * time.Millisecond)
+		t := time.Now().UnixNano()
+		moveType := utils.RandomInt32(0, 5)
+		req := NewHeroMovementChangeRequestTopMsg(h.Id, proto.HeroMovementType(moveType), h.Position, t)
+		h.MsgQueue <- &api.Mail{
+			Conn: nil,
+			Msg:  req,
+		}
+	}
+}
+
+func (h *FakeHero) ReportHeroPosition() {
+	for {
+		time.Sleep(5000 * time.Millisecond)
+		t := time.Now().UnixNano()
+		moveType := utils.RandomInt32(0, 5)
+		req := NewHeroPositionReportRequestTopMsg(h.Id, proto.HeroMovementType(moveType), h.Position, t)
+		h.MsgQueue <- &api.Mail{
+			Conn: nil,
+			Msg:  req,
+		}
+	}
 }

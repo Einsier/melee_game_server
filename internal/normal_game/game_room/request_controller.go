@@ -3,6 +3,7 @@ package game_room
 import (
 	"melee_game_server/api/proto"
 	"melee_game_server/framework/game_net/api"
+	"melee_game_server/plugins/logger"
 	"sync"
 )
 
@@ -26,6 +27,10 @@ func NewRequestController() (c *RequestController) {
 func (c *RequestController) Work(room *NormalGameRoom) {
 	for {
 		mail := <-room.TestRequestChan
+		if mail.Msg == nil || mail.Msg.Request == nil {
+			logger.TestErrf("收到了错误的请求:%v", mail)
+			continue
+		}
 		h := c.register.GetHandler(int32(mail.Msg.Request.RequestCode))
 		if h != nil {
 			go h(mail, room)
@@ -70,7 +75,7 @@ func (r *RequestHandlerRegister) NormalGameInit() {
 	r.Register(int32(proto.RequestCode_PlayerQuitGameRequestCode), PlayerQuitGameRequestCallback)
 	r.Register(int32(proto.RequestCode_HeroPositionReportRequestCode), HeroPositionReportRequestCallback)
 	r.Register(int32(proto.RequestCode_HeroMovementChangeRequestCode), HeroMovementChangeRequestCallback)
-	r.Register(int32(proto.RequestCode_HeroMovementChangeRequestCode), HeroBulletLaunchRequestCallback)
+	r.Register(int32(proto.RequestCode_HeroBulletLaunchRequestCode), HeroBulletLaunchRequestCallback)
 	r.Register(int32(proto.RequestCode_HeroSwordAttackRequestCode), HeroSwordAttackRequestCallback)
 	r.Register(int32(proto.RequestCode_HeroGetPropRequestCode), HeroGetPropRequestCallback)
 	r.Register(int32(proto.RequestCode_HeroBulletColliderHeroRequestCode), HeroBulletColliderHeroRequestCallback)

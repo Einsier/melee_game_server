@@ -20,7 +20,7 @@ type Player struct {
 	Nickname      string //玩家昵称
 	Level         int    //玩家等级
 	Score         int    //玩家得分
-	Conn          *net.Conn
+	Conn          net.Conn
 	Status        int32 //玩家当前状态
 	statusLock    sync.RWMutex
 	heartBeatTime time.Time
@@ -53,7 +53,7 @@ func (p *Player) BindHeroId(hId int32) {
 	p.HeroId = hId
 }
 
-func (p *Player) BindConn(conn *net.Conn) {
+func (p *Player) BindConn(conn net.Conn) {
 	p.Conn = conn
 }
 

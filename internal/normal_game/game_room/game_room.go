@@ -89,15 +89,18 @@ func (room *NormalGameRoom) Start() {
 	go room.requestController.Work(room)
 	<-room.Prepare
 	logger.Info("所有玩家准备就绪,开始游戏")
+	logger.Test("所有玩家准备就绪,开始游戏")
 	//代码执行到这里,所有的玩家都已经准备好
 	time.Sleep(20 * time.Millisecond)                                                       //等待最后一个分配heroId的包到达
 	room.netServer.SendToAllPlayerConn(codec.Encode(&proto.GameStartBroadcast{HeroId: -1})) //发消息通知所有的玩家游戏开始
 	room.Status = configs.NormalGameStartStatus
-	room.GetTimeEventController().AddEvent(&CleanOverTimeBulletTimeEvent)
-	room.GetTimeEventController().AddEvent(&RefreshPropsTimeEvent)
+	room.GetTimeEventController().AddEvent(CleanOverTimeBulletTimeEvent)
+	room.GetTimeEventController().AddEvent(RefreshPropsTimeEvent)
 	<-room.leave
+	room.GetTimeEventController().Destroy()
 	room.Status = configs.NormalGameGameDestroyingStatus
 	logger.Info("所有玩家已经离开,准备进行清理工作")
+	logger.Test("所有玩家已经离开,准备进行清理工作")
 	//todo 清理工作/持久化数据给数据库等
 
 	close(room.over) //通知本game_room已经结束

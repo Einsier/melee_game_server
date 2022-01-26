@@ -34,16 +34,16 @@ func (t *TestKcpNet) Receive() *api.Mail {
 }
 
 func (t *TestKcpNet) Send(rm *api.ReplyMail) {
-	c := 0
-	for _, conn := range rm.ConnSlice {
-		if conn != nil {
-			c++
-		}
-	}
-	if c != 0 {
-		logger.TestErrf("[TestKcpNet]给%d个nil Conn发送消息:%v\n", c, rm.Msg)
-	}
-	logger.Testf("[TestKcpNet]给%d个玩家发送如下消息:%v\n", len(rm.ConnSlice), rm.Msg)
+	/*	switch rm.Msg.TopMessageType {
+		case proto.TopMessageType_BroadcastType:
+			broad := rm.Msg.Broadcast
+			switch  broad.BroadcastCode{
+			case proto.BroadcastCode_HeroBulletLaunchBroadcastCode:
+				logger.Testf("[Send]给%d名玩家发送广播%v", len(rm.ConnSlice),broad)
+			case proto.BroadcastCode_HeroPositionReportBroadcastCode:
+				logger.Testf("[Send]给%d名玩家发送广播%v", len(rm.ConnSlice),broad)
+			}
+		}*/
 }
 
 func (t *TestKcpNet) Shutdown() {

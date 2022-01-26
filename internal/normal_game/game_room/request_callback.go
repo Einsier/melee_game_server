@@ -70,6 +70,8 @@ func PlayerEnterGameRequestCallback(msg *api.Mail, room *NormalGameRoom) {
 		pm.GetPlayer(pId).BindConn(msg.Conn) //为player绑定conn
 		pm.GetPlayer(pId).BindHeroId(hId)    //为player绑定heroId
 		pm.GetPlayer(pId).SetStatus(configs.PlayerEnterGameStatus)
+		pm.hToP[hId] = pId
+		pm.pToH[pId] = hId
 		pm.RegisterLock.Unlock() //注册完再解锁,这样下次同一个玩家重复注册无论什么顺序都会检测到
 		logger.Infof("[PlayerEnterGameRequestCallback]完成玩家id:%d的玩家的注册,其heroId为:%d\n", pId, hId)
 		atomic.AddInt32(&room.PlayerNum, 1) //GameRoom记录的玩家人数+1
@@ -165,7 +167,7 @@ func HeroMovementChangeRequestCallback(msg *api.Mail, room *NormalGameRoom) {
 func HeroBulletLaunchRequestCallback(msg *api.Mail, room *NormalGameRoom) {
 	req := msg.Msg.Request.HeroBulletLaunchRequest
 	hid := req.HeroId
-	if room.Status == configs.NormalGameInitStatus {
+	if room.Status == configs.NormalGameStartStatus {
 		position := gt.Vector2{X: float64(req.Position.X), Y: float64(req.Position.Y)}
 		direction := gt.Vector2{X: float64(req.Direction.X), Y: float64(req.Direction.Y)}
 		bullet := gt.NewBullet(hid, req.BulletIdByHero, req.LaunchTime, position, direction)

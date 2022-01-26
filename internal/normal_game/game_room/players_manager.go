@@ -15,9 +15,25 @@ import (
 
 type PlayersManager struct {
 	players      map[int32]*gt.Player //key为玩家id
-	lock         sync.RWMutex         //用于对 Players增删加锁
-	RegisterLock sync.Mutex           //用于PlayerEnterGameRequestCallback中加的锁
-	LeaveLock    sync.Mutex           //用于PlayerQuitGameRequestCallback中加的锁
+	pToH         map[int32]int32      //key为int32的玩家id,value为int32的英雄id
+	hToP         map[int32]int32      //key为int32的英雄id,value为int32的玩家id
+	lock         sync.RWMutex         //用于对Players增删加锁
+	RegisterLock sync.RWMutex         //用于PlayerEnterGameRequestCallback中加的锁
+	LeaveLock    sync.RWMutex         //用于PlayerQuitGameRequestCallback中加的锁
+}
+
+//GetHeroId 通过PlayerId查找hid
+func (pm *PlayersManager) GetHeroId(pid int32) int32 {
+	pm.RegisterLock.RLocker()
+	defer pm.RegisterLock.Unlock()
+	return pm.pToH[pid]
+}
+
+//GetPlayerId 通过HeroId查找pid
+func (pm *PlayersManager) GetPlayerId(hid int32) int32 {
+	pm.RegisterLock.RLocker()
+	defer pm.RegisterLock.Unlock()
+	return pm.hToP[hid]
 }
 
 //IsPlayerRegistered 检查Player有没有注册过,返回false表示没注册过,应该注册
@@ -45,7 +61,9 @@ func NewPlayersManager() *PlayersManager {
 	pm := PlayersManager{
 		players:      make(map[int32]*gt.Player),
 		lock:         sync.RWMutex{},
-		RegisterLock: sync.Mutex{},
+		RegisterLock: sync.RWMutex{},
+		hToP:         make(map[int32]int32),
+		pToH:         make(map[int32]int32),
 	}
 	return &pm
 }

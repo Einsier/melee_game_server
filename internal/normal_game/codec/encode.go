@@ -2,6 +2,7 @@ package codec
 
 import (
 	"melee_game_server/api/proto"
+	"melee_game_server/plugins/logger"
 )
 
 /**
@@ -130,6 +131,8 @@ func Encode(msg interface{}) *proto.TopMessage {
 		topMsg.TopMessageType = proto.TopMessageType_BroadcastType
 		topMsg.Broadcast = &broadcast
 		return topMsg
+	default:
+		logger.TestErrf("收到了错误的译码请求,%T不是可正确译码的类型", msg)
 	}
 	return nil
 }
@@ -154,6 +157,32 @@ func EncodeRequest(msg interface{}) *proto.TopMessage {
 		topMsg.TopMessageType = proto.TopMessageType_RequestType
 		topMsg.Request = &req
 		return topMsg
+	case *proto.HeroMovementChangeRequest:
+		req := proto.Request{
+			RequestCode:               proto.RequestCode_HeroMovementChangeRequestCode,
+			HeroMovementChangeRequest: msg.(*proto.HeroMovementChangeRequest),
+		}
+		topMsg.TopMessageType = proto.TopMessageType_RequestType
+		topMsg.Request = &req
+		return topMsg
+	case *proto.HeroPositionReportRequest:
+		req := proto.Request{
+			RequestCode:               proto.RequestCode_HeroPositionReportRequestCode,
+			HeroPositionReportRequest: msg.(*proto.HeroPositionReportRequest),
+		}
+		topMsg.TopMessageType = proto.TopMessageType_RequestType
+		topMsg.Request = &req
+		return topMsg
+	case *proto.HeroBulletLaunchRequest:
+		req := proto.Request{
+			RequestCode:             proto.RequestCode_HeroBulletLaunchRequestCode,
+			HeroBulletLaunchRequest: msg.(*proto.HeroBulletLaunchRequest),
+		}
+		topMsg.TopMessageType = proto.TopMessageType_RequestType
+		topMsg.Request = &req
+		return topMsg
+	default:
+		logger.TestErrf("收到了错误的译码请求,%T不是可正确译码的类型", msg)
 	}
 	return nil
 }

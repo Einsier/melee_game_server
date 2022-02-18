@@ -1,7 +1,7 @@
 package game_room
 
 import (
-	pb "melee_game_server/api/proto"
+	pb "melee_game_server/api/client/proto"
 	configs "melee_game_server/configs/normal_game_type_configs"
 	"melee_game_server/internal/normal_game/codec"
 	gt "melee_game_server/internal/normal_game/game_type"

@@ -1,6 +1,6 @@
 package game_type
 
-import "melee_game_server/api/proto"
+import "melee_game_server/api/client/proto"
 
 /**
 *@Author Sly

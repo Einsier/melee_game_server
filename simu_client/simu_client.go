@@ -3,9 +3,9 @@ package simu_client
 import (
 	"fmt"
 	"math/rand"
-	"melee_game_server/api/proto"
+	"melee_game_server/api/client/proto"
 	"melee_game_server/internal/normal_game/codec"
-	"melee_game_server/plugins/kcp_net/adapter"
+	"melee_game_server/plugins/kcp/adapter"
 	"net"
 	"time"
 
@@ -65,7 +65,7 @@ func (client *SimuClient) PlayerEnterGame() {
 		PlayerId:   client.playerId,
 		GameRoomId: client.roomId,
 	})
-	adapter.Send(&client.conn, req)
+	adapter.Send(client.conn, req)
 }
 
 // PlayerQuitGame 玩家退出游戏
@@ -74,7 +74,7 @@ func (client *SimuClient) PlayerQuitGame() {
 		HeroId:   client.heroId,
 		PlayerId: client.playerId,
 	})
-	adapter.Send(&client.conn, req)
+	adapter.Send(client.conn, req)
 }
 
 // HeroPositionReport 英雄位置同步
@@ -85,7 +85,7 @@ func (client *SimuClient) HeroPositionReport() {
 		Position:         client.position,
 		Time:             time.Now().UnixNano(),
 	})
-	adapter.Send(&client.conn, req)
+	adapter.Send(client.conn, req)
 }
 
 //changeHeroPositionByRandom 随机改变英雄位置
@@ -109,7 +109,7 @@ func (client *SimuClient) HeroMovementChange(heroMovementType *proto.HeroMovemen
 		Position:         client.position,
 		Time:             time.Now().UnixNano(),
 	})
-	adapter.Send(&client.conn, req)
+	adapter.Send(client.conn, req)
 }
 
 //HeroSwordAttack 英雄近战攻击
@@ -117,7 +117,7 @@ func (client *SimuClient) HeroSwordAttack() {
 	req := codec.EncodeRequest(&proto.HeroSwordAttackRequest{
 		//todo
 	})
-	adapter.Send(&client.conn, req)
+	adapter.Send(client.conn, req)
 }
 
 //HeroBulletLaunch 英雄发射子弹
@@ -130,7 +130,7 @@ func (client *SimuClient) HeroBulletLaunch(direction *proto.Vector2) {
 		Direction:      direction,
 		BulletIdByHero: client.bulletIdByHero,
 	})
-	adapter.Send(&client.conn, req)
+	adapter.Send(client.conn, req)
 }
 
 //HeroGetProp 英雄获取道具
@@ -139,7 +139,7 @@ func (client *SimuClient) HeroGetProp() {
 		HeroId: client.heroId,
 		//todo
 	})
-	adapter.Send(&client.conn, req)
+	adapter.Send(client.conn, req)
 }
 
 //HeroBulletColliderHero 英雄被子弹打中
@@ -147,7 +147,7 @@ func (client *SimuClient) HeroBulletColliderHero() {
 	req := codec.EncodeRequest(&proto.HeroBulletColliderHeroRequest{
 		//todo
 	})
-	adapter.Send(&client.conn, req)
+	adapter.Send(client.conn, req)
 }
 
 //PlayerHeartBeat 玩家心跳检测
@@ -156,13 +156,13 @@ func (client *SimuClient) PlayerHeartBeat() {
 		PlayerId:       client.playerId,
 		ClientSendTime: time.Now().UnixNano(),
 	})
-	adapter.Send(&client.conn, req)
+	adapter.Send(client.conn, req)
 }
 
 // ReceiveHandle 处理服务器发来的消息
 func (client *SimuClient) ReceiveHandle() {
 	for {
-		msg := adapter.Receive(&client.conn)
+		msg := adapter.Receive(client.conn)
 		fmt.Printf("接收到消息 %v", msg)
 		// response
 		if msg.TopMessageType == proto.TopMessageType_ResponseType {

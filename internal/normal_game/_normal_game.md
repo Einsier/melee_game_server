@@ -75,3 +75,10 @@ game_room等待全部(configs.MaxNormalGamePlayerNum个)玩家进入,并且校�
 * mvp1玩家同步逻辑:
   * 玩家a按下方向键或者松开方向键(或者长时间没有按键变换),unity检测到,记录客户端当前时间以及玩家按键,发送ChangeMovementTypeRequest(或者ReportHeroPositionRequest)给服务器
   * 服务器将信息原封不动的转发给客户端,客户端通过这两个参数每一帧更新玩家a的位置信息.
+
+
+2022/2/17
+大修改...原本设想的是一个game_server使用的是一个ip地址,每一局运行在game_server中的游戏是使用这个ip地址上的一个端口.但是
+经过老师指点,可能client为了保证通讯速度,是同game_room进行直连,如果一个game_room占用一个端口,可能会出现例如端口地址不够用,
+同一时刻运行的最大单局有限的问题.
+所以将每个game_server运行在一个端口上,然后在应用层根据每个game_room的id进行分发,分发给每个game_room的处理函数

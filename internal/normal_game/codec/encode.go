@@ -1,7 +1,7 @@
 package codec
 
 import (
-	"melee_game_server/api/proto"
+	"melee_game_server/api/client/proto"
 	"melee_game_server/plugins/logger"
 )
 

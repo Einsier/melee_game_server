@@ -1,7 +1,7 @@
 package game_room
 
 import (
-	"melee_game_server/api/proto"
+	"melee_game_server/api/client/proto"
 	"melee_game_server/framework/game_net/api"
 	"melee_game_server/plugins/logger"
 	"sync"
@@ -24,17 +24,64 @@ func NewRequestController() (c *RequestController) {
 	return &RequestController{register: r}
 }
 
-func (c *RequestController) Work(room *NormalGameRoom) {
+//Work1 需要使用go Work1调用,接收消息并根据消息类型开go程执行回调函数
+func (c *RequestController) Work1(room *NormalGameRoom) {
 	for {
-		mail := <-room.TestRequestChan
+		//todo 测试用
+		//mail := <-room.TestRequestChan
+		mail, ok := room.netServer.Receive()
+		if !ok {
+			//防止go程泄露
+			return
+		}
 		if mail.Msg == nil || mail.Msg.Request == nil {
+			//判断消息是否合法
 			logger.TestErrf("收到了错误的请求:%v", mail)
 			continue
 		}
-		h := c.register.GetHandler(int32(mail.Msg.Request.RequestCode))
+		h := c.register.GetHandler(int32(mail.Msg.Request.RequestCode)) //从回调函数注册中心根据消息类型取出注册函数
 		if h != nil {
 			go h(mail, room)
 		}
+	}
+}
+
+//Work2 需要使用go Work2调用,接收消息并查看消息合法性,如果合法,投放到管道中让消费者go程执行回调函数
+func (c *RequestController) Work2(room *NormalGameRoom) {
+	mailQueue := make(chan *api.Mail, 100)
+
+	for i := 0; i < 10; i++ {
+		//开10个消费者go程
+		go func() {
+			for {
+				mail, ok := <-mailQueue
+				if !ok {
+					//防止go程泄露
+					return
+				}
+
+				h := c.register.GetHandler(int32(mail.Msg.Request.RequestCode)) //从回调函数注册中心根据消息类型取出注册函数
+				if h != nil {
+					h(mail, room)
+				}
+			}
+		}()
+	}
+
+	//父go程检测消息合法性,如果合法,投入到mailQueue中让子go程消费
+	for {
+		mail, ok := room.netServer.Receive()
+		if !ok {
+			//防止go程泄露
+			close(mailQueue)
+			return
+		}
+		if mail.Msg == nil || mail.Msg.Request == nil {
+			//判断消息是否合法
+			logger.TestErrf("收到了错误的请求:%v", mail)
+			continue
+		}
+		mailQueue <- mail
 	}
 }
 

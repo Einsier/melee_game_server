@@ -1,7 +1,7 @@
 package game_room
 
 import (
-	pb "melee_game_server/api/proto"
+	pb "melee_game_server/api/client/proto"
 	configs "melee_game_server/configs/normal_game_type_configs"
 	"melee_game_server/framework/game_net/api"
 	"melee_game_server/internal/normal_game/codec"
@@ -144,6 +144,7 @@ func HeroPositionReportRequestCallback(msg *api.Mail, room *NormalGameRoom) {
 			HeroPosition: &pb.Vector2{X: X, Y: Y},
 		})
 		room.GetNetServer().SendByHeroId(broadHeroes, broad)
+		return
 	}
 	logger.Errorf("[HeroPositionReportRequestCallback]在%d阶段收到了heroId:%d,的HeroPositionReportRequest!\n", room.Status, hid)
 }
@@ -160,6 +161,7 @@ func HeroMovementChangeRequestCallback(msg *api.Mail, room *NormalGameRoom) {
 			HeroMovementType: req.HeroMovementType,
 		})
 		room.GetNetServer().SendByHeroId(broadHeroes, broad)
+		return
 	}
 	logger.Errorf("[HeroMovementChangeRequestCallback]在%d阶段收到了heroId:%d,的HeroPositionReportRequest!\n", room.Status, hid)
 }
@@ -180,6 +182,7 @@ func HeroBulletLaunchRequestCallback(msg *api.Mail, room *NormalGameRoom) {
 			Time:      req.LaunchTime,
 		})
 		room.GetNetServer().SendByHeroId(broadHeroes, broad)
+		return
 	}
 	logger.Errorf("[HeroBulletLaunchRequestCallback]在%d阶段收到了heroId:%d,的HeroBulletLaunchRequest!\n", room.Status, hid)
 }

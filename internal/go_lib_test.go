@@ -140,3 +140,58 @@ func TestMap(t *testing.T) {
 	}
 	time.Sleep(100 * time.Millisecond)
 }
+
+func TestChan(t *testing.T) {
+	wg := sync.WaitGroup{}
+	wg.Add(2)
+	ch := make(chan struct{}, 0)
+	putF := func() {
+		ch <- struct{}{}
+		fmt.Printf("finish put\n")
+		wg.Done()
+	}
+	getF := func() {
+		time.Sleep(3 * time.Second)
+		<-ch
+		fmt.Printf("finish get\n")
+		wg.Done()
+	}
+	go putF()
+	go getF()
+	wg.Wait()
+}
+
+func TestConsumer(t *testing.T) {
+	ch := make(chan int, 5)
+	wg := sync.WaitGroup{}
+	wg.Add(3)
+	producer := func() {
+		for i := 0; i < 10; i++ {
+			ch <- i
+		}
+		close(ch)
+		wg.Done()
+	}
+	consumer := func(id int) {
+		for {
+			i, ok := <-ch
+			if !ok {
+				fmt.Printf("cons %d quit\n", id)
+				break
+			}
+			//time.Sleep(1 * time.Second)
+			fmt.Printf("cons %d received msg:%d\n", id, i)
+		}
+		wg.Done()
+	}
+	go producer()
+	go consumer(1)
+	go consumer(2)
+	wg.Wait()
+}
+
+func TestChan2(t *testing.T) {
+	ch := make(chan struct{})
+	close(ch)
+	ch <- struct{}{}
+}

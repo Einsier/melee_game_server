@@ -1,7 +1,7 @@
 package test
 
 import (
-	"melee_game_server/api/proto"
+	"melee_game_server/api/client/proto"
 	configs "melee_game_server/configs/normal_game_type_configs"
 	"melee_game_server/framework/game_net/api"
 	framework "melee_game_server/framework/game_room"
@@ -165,14 +165,14 @@ func testInit() {
 
 //TestEnterGameRequest 测试所有请求能否按照预期收发
 func TestGameRequest(t *testing.T) {
-	logger.SetLogLevel(logger.LogInfoLevel) //打印正常游戏过程的日志
-	logger.SetLogLevelToTestOnly()          //打印测试日志
+	//logger.SetLogLevel(logger.LogInfoLevel) //打印正常游戏过程的日志
+	logger.SetLogLevelToTestOnly() //打印测试日志
 	testInit()
 	room := new(gr.NormalGameRoom)
 	var TestRoomInitInfo = framework.RoomInitInfo{
-		Id:          1,
-		Port:        "8000",
-		Over:        make(chan interface{}),
+		Id: 1,
+		//Port:        "8000",
+		Over:        make(chan struct{}),
 		JoinPlayers: TestJoinPlayers,
 	}
 	room.Init(&TestRoomInitInfo)

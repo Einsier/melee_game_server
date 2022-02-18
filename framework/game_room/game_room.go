@@ -1,5 +1,7 @@
 package game_room
 
+import "melee_game_server/framework/game_net/api"
+
 /**
 *@Author chenjiajia
 *@Date 2022/1/17
@@ -18,10 +20,13 @@ type PlayerInfo struct {
 }
 
 type RoomInitInfo struct {
-	Id          int32            //room分配的id
-	Port        string           //room分配的端口
-	Over        chan interface{} //是否结束的标志,如果结束则由game_room关闭管道通知game_server
-	JoinPlayers []*PlayerInfo    //待加入的玩家的信息
+	Id          int32         //room分配的id
+	Over        chan struct{} //是否结束的标志,如果结束则由game_room关闭管道通知game_server,后期可以改成对局结算信息
+	JoinPlayers []*PlayerInfo //待加入的玩家的信息
+}
+
+type RoomConnectionInfo struct {
+	Id int32
 }
 
 type GameRoom interface {
@@ -29,4 +34,5 @@ type GameRoom interface {
 	Start()                  //开始游戏
 	GetGameInfo() *GameInfo  //获取游戏快照信息
 	GetRoomInfo() *RoomInfo  //获取游戏房间信息
+	PutMsg(mail *api.Mail)
 }

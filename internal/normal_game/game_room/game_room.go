@@ -1,7 +1,7 @@
 package game_room
 
 import (
-	"melee_game_server/api/proto"
+	"melee_game_server/api/client/proto"
 	configs "melee_game_server/configs/normal_game_type_configs"
 	"melee_game_server/framework/game_net/api"
 	"melee_game_server/framework/game_room"
@@ -20,11 +20,11 @@ import (
  */
 
 type NormalGameRoom struct {
-	Id                  int32
-	port                string
+	Id int32
+	//port                string
 	Prepare             chan interface{} //所有玩家都已连入游戏
 	leave               chan interface{} //玩家都已经离开
-	over                chan interface{} //用于向game_server汇报的
+	over                chan struct{}    //用于向game_server汇报的
 	TestRequestChan     chan *api.Mail   //用于测试的chan,把Mail传进去交给RequestController处理
 	PlayerNum           int32            //当前的存活的玩家数目
 	Status              int32            //当前的状态
@@ -59,7 +59,6 @@ func (room *NormalGameRoom) GetTimeEventController() *TimeEventController {
 //Init 初始化GameRoom的参数
 func (room *NormalGameRoom) Init(info *game_room.RoomInitInfo) {
 	room.Id = info.Id
-	room.port = info.Port
 	room.over = info.Over
 	room.leave = make(chan interface{})
 	room.Prepare = make(chan interface{})
@@ -70,8 +69,7 @@ func (room *NormalGameRoom) Init(info *game_room.RoomInitInfo) {
 	room.heroManager = NewHeroesManager()
 	room.propsManager = NewPropsManager()
 	room.bulletsManager = NewBulletsManager()
-	room.netServer = gn.NewNormalGameNetServer()
-	room.netServer.Init(room.port, configs.KcpRecvSize, configs.KcpSendSize)
+	room.netServer = gn.NewNormalGameNetServer(info.Id)
 	room.playersManager = NewPlayersManager()
 	for _, pi := range info.JoinPlayers {
 		room.playersManager.AddPlayer(gt.NewPlayer(pi.PlayerId))
@@ -82,11 +80,11 @@ func (room *NormalGameRoom) Init(info *game_room.RoomInitInfo) {
 
 //Start 开始游戏,先开启kcp服务器,接收玩家的PlayerEnterGameRequest请求,根据init传过来的JoinPlayers进行身份校验,
 //把PlayerManager和NormalGameNetServer的Player部分进行初始化,初始化playerId,heroId,记录网络和玩家的映射消息,
-//注意应该使用go Start()进行调用,然后
+//注意应该使用go Start()进行调用,然后外面监听room.over
 func (room *NormalGameRoom) Start() {
 	room.Status = configs.NormalGameWaitPlayerStatus
-	room.netServer.Start()
-	go room.requestController.Work(room)
+	//room.netServer.Start()
+	go room.requestController.Work2(room)
 	<-room.Prepare
 	logger.Info("所有玩家准备就绪,开始游戏")
 	logger.Test("所有玩家准备就绪,开始游戏")
@@ -114,4 +112,8 @@ func (room *NormalGameRoom) GetGameInfo() *game_room.GameInfo {
 //GetRoomInfo 获取游戏房间信息
 func (room *NormalGameRoom) GetRoomInfo() *game_room.RoomInfo {
 	return nil
+}
+
+func (room *NormalGameRoom) PutMsg(mail *api.Mail) {
+	room.netServer.ReqChan <- mail
 }

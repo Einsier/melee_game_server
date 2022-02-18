@@ -1,7 +1,7 @@
 package api
 
 import (
-	"melee_game_server/api/proto"
+	"melee_game_server/api/client/proto"
 	"net"
 )
 

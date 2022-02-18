@@ -309,6 +309,7 @@ func (BroadcastCode) EnumDescriptor() ([]byte, []int) {
 	return file_consts_proto_rawDescGZIP(), []int{4}
 }
 
+//个人发现如果发送的信息的某个字段的枚举类型为0,则会忽略发送这个字段...不知道会不会是伏笔
 type PropType int32
 
 const (

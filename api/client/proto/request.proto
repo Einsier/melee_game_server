@@ -5,16 +5,17 @@ import "consts.proto";
 import "struct.proto";
 
 message Request{
-    RequestCode                     requestCode                     = 1;
-    PlayerEnterGameRequest          playerEnterGameRequest          = 2;
-    PlayerQuitGameRequest           playerQuitGameRequest           = 3;
-    HeroPositionReportRequest       heroPositionReportRequest       = 4;
-    HeroMovementChangeRequest       heroMovementChangeRequest       = 5;
-    HeroSwordAttackRequest          heroSwordAttackRequest          = 6;
-    HeroBulletLaunchRequest         heroBulletLaunchRequest         = 7;
-    HeroGetPropRequest              heroGetPropRequest              = 8;
-    HeroBulletColliderHeroRequest   heroBulletColliderHeroRequest   = 9;
-    PlayerHeartBeatRequest          playerHeartBeatRequest          = 10;
+    int32                           RoomId                          = 1;
+    RequestCode                     requestCode                     = 2;
+    PlayerEnterGameRequest          playerEnterGameRequest          = 3;
+    PlayerQuitGameRequest           playerQuitGameRequest           = 4;
+    HeroPositionReportRequest       heroPositionReportRequest       = 5;
+    HeroMovementChangeRequest       heroMovementChangeRequest       = 6;
+    HeroSwordAttackRequest          heroSwordAttackRequest          = 7;
+    HeroBulletLaunchRequest         heroBulletLaunchRequest         = 8;
+    HeroGetPropRequest              heroGetPropRequest              = 9;
+    HeroBulletColliderHeroRequest   heroBulletColliderHeroRequest   = 10;
+    PlayerHeartBeatRequest          playerHeartBeatRequest          = 11;
 }
 
 message PlayerEnterGameRequest{

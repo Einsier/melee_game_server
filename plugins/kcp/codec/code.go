@@ -2,7 +2,7 @@ package codec
 
 import (
 	"log"
-	pb "melee_game_server/api/proto"
+	pb "melee_game_server/api/client/proto"
 
 	"google.golang.org/protobuf/proto"
 )

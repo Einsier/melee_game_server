@@ -1,6 +1,7 @@
 package test_kcp_net
 
 import (
+	"melee_game_server/api/client/proto"
 	"melee_game_server/framework/game_net/api"
 	"melee_game_server/plugins/logger"
 )
@@ -34,16 +35,16 @@ func (t *TestKcpNet) Receive() *api.Mail {
 }
 
 func (t *TestKcpNet) Send(rm *api.ReplyMail) {
-	/*	switch rm.Msg.TopMessageType {
-		case proto.TopMessageType_BroadcastType:
-			broad := rm.Msg.Broadcast
-			switch  broad.BroadcastCode{
-			case proto.BroadcastCode_HeroBulletLaunchBroadcastCode:
-				logger.Testf("[Send]给%d名玩家发送广播%v", len(rm.ConnSlice),broad)
-			case proto.BroadcastCode_HeroPositionReportBroadcastCode:
-				logger.Testf("[Send]给%d名玩家发送广播%v", len(rm.ConnSlice),broad)
-			}
-		}*/
+	switch rm.Msg.TopMessageType {
+	case proto.TopMessageType_BroadcastType:
+		broad := rm.Msg.Broadcast
+		switch broad.BroadcastCode {
+		case proto.BroadcastCode_HeroBulletLaunchBroadcastCode:
+			logger.Testf("[Send]给%d名玩家发送广播%v", len(rm.ConnSlice), broad)
+		case proto.BroadcastCode_HeroPositionReportBroadcastCode:
+			logger.Testf("[Send]给%d名玩家发送广播%v", len(rm.ConnSlice), broad)
+		}
+	}
 }
 
 func (t *TestKcpNet) Shutdown() {

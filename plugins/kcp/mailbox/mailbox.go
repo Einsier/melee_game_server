@@ -6,10 +6,10 @@ package mailbox
 import (
 	"errors"
 	"log"
-	pb "melee_game_server/api/proto"
-	"melee_game_server/framework/game_net/api"
-	"melee_game_server/plugins/kcp_net/adapter"
-	mq "melee_game_server/plugins/kcp_net/messageQueue"
+	pb "melee_game_server/api/client/proto"
+	mail "melee_game_server/framework/game_net/api"
+	adapter "melee_game_server/plugins/kcp/adapter"
+	mq "melee_game_server/plugins/kcp/messageQueue"
 	"net"
 
 	kcp "github.com/xtaci/kcp-go"
@@ -42,6 +42,7 @@ func (box *Mailbox) Init(addr string, recvSize uint32, sendSize uint32) {
 	box.addr = addr
 	box.receiveMQ.Init(recvSize)
 	box.sendMQ.Init(sendSize)
+	box.channels = make(map[net.Conn]chan *pb.TopMessage)
 }
 
 /*
@@ -65,23 +66,27 @@ func (box *Mailbox) Start() error {
 	//启动sendMQHandler()goroutine
 	//负责将box.sendMQ中消息转发给各个连接进行发送
 	go box.sendMQHandler()
-	//main goroutine负责监听端口，接受连接
+	//负责监听端口，接受连接
 	//为每个连接初始化配置
-	for {
-		conn, err := listener.Accept()
-		if err != nil {
-			log.Println(err)
-			continue
+	go func() {
+		for {
+			conn, err := listener.Accept()
+			if err != nil {
+				log.Println(err)
+				continue
+			}
+			log.Println("接收到新连接")
+			//为新建立的连接分配一个容量为1的通道
+			//存放将要从这个连接发送出去的消息
+			channel := make(chan *pb.TopMessage, 1)
+			//在map中注册连接和通道的对应关系
+			box.channels[conn] = channel
+			//为新建立的连接启动收发消息的goroutine
+			go box.receiveHandler(conn)
+			go box.sendHandler(conn)
 		}
-		//为新建立的连接分配一个容量为1的通道
-		//存放将要从这个连接发送出去的消息
-		channel := make(chan *pb.TopMessage, 1)
-		//在map中注册连接和通道的对应关系
-		box.channels[conn] = channel
-		//为新建立的连接启动收发消息的goroutine
-		go box.receiveHandler(conn)
-		go box.sendHandler(conn)
-	}
+	}()
+	return nil
 }
 
 /*
@@ -100,13 +105,13 @@ func (box *Mailbox) Shutdown() {
  *注意:
  *	Receive()是同步阻塞的,当receiveMQ中没有消息时，会阻塞调用线程
  */
-func (box *Mailbox) Receive() *api.Mail {
+func (box *Mailbox) Receive() *mail.Mail {
 	msg, err := box.receiveMQ.Get()
 	if err != nil {
 		log.Println(err)
 		return nil
 	}
-	mailPtr := msg.(*api.Mail)
+	mailPtr := msg.(*mail.Mail)
 	return mailPtr
 }
 
@@ -119,7 +124,7 @@ func (box *Mailbox) Receive() *api.Mail {
  *	Send()是同步阻塞的,当sendMQ中消息满时，会阻塞调用线程
  *	Send()并不负责真正的发送工作,它仅仅是将消息投递到发送消息队列中
  */
-func (box *Mailbox) Send(replyPtr *api.ReplyMail) {
+func (box *Mailbox) Send(replyPtr *mail.ReplyMail) {
 	//将发送消息存放到sendMQ中
 	box.sendMQ.Put(replyPtr)
 }
@@ -139,7 +144,7 @@ func (box *Mailbox) sendMQHandler() {
 			log.Println(err)
 			continue
 		}
-		replyPtr := msg.(*api.ReplyMail)
+		replyPtr := msg.(*mail.ReplyMail)
 		//投递给所有接受消息的连接
 		for _, connPtr := range replyPtr.ConnSlice {
 			channel := box.channels[connPtr]
@@ -154,10 +159,10 @@ func (box *Mailbox) sendMQHandler() {
  *功能:
  *	接受连接中的消息,封装成为Mail对象，存放到box.receiveMQ中
  */
-func (box *Mailbox) receiveHandler(connPtr net.Conn) *pb.TopMessage {
+func (box *Mailbox) receiveHandler(conn net.Conn) *pb.TopMessage {
 	for {
-		msg := adapter.Receive(connPtr)
-		mail := api.Mail{Conn: connPtr, Msg: msg}
+		msg := adapter.Receive(conn)
+		mail := mail.Mail{Conn: conn, Msg: msg}
 		box.receiveMQ.Put(&mail)
 	}
 }
@@ -168,10 +173,27 @@ func (box *Mailbox) receiveHandler(connPtr net.Conn) *pb.TopMessage {
  *功能:
  *	将派送到通道中的消息真正地从连接中发送出去
  */
-func (box *Mailbox) sendHandler(connPtr net.Conn) {
-	channel := box.channels[connPtr]
+func (box *Mailbox) sendHandler(conn net.Conn) {
+	channel := box.channels[conn]
 	for {
 		reply := <-channel
-		adapter.Send(connPtr, reply)
+		adapter.Send(conn, reply)
 	}
+}
+
+/*
+ *函数名:
+ *	broadcast
+ *功能:
+ *	用于开发阶段测试服务器和客户端之间的发送功能
+ */
+func (box *Mailbox) Broadcast(msg *pb.TopMessage) {
+	s := make([]net.Conn, 0, len(box.channels))
+	for conn := range box.channels {
+		s = append(s, conn)
+	}
+	var reply mail.ReplyMail
+	reply.ConnSlice = s
+	reply.Msg = msg
+	box.Send(&reply)
 }

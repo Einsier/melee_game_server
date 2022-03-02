@@ -31,9 +31,8 @@ func NewReplyMail(connSlice []net.Conn, msg *pb.TopMessage) *ReplyMail {
 
 type NetPlugin interface {
 	Init(port string, recvSize, sendSize uint32)
-	Start() error   //开始工作
-	Receive() *Mail //接收信息
-	//Listen(conn net.Conn)*Mail
+	Start() error             //开始工作
+	Receive() *Mail           //接收信息
 	Send(replyPtr *ReplyMail) //发送
 	Shutdown()                //停止工作
 }

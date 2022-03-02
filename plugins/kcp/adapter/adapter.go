@@ -14,11 +14,13 @@ const (
 
 func Send(conn net.Conn, msg *pb.TopMessage) {
 	cMsg := codec.Code(msg)
-	count, err := conn.Write(cMsg)
+	//count, err := conn.Write(cMsg)
+	_, err := conn.Write(cMsg)
 	if err != nil {
 		log.Println("Usage:Send()调用失败，错误信息:", err)
 	} else {
-		fmt.Println("Msg:Send()调用成功，共发送", count, "字节")
+		fmt.Printf("%v\n", msg)
+		//fmt.Println("Msg:Send()调用成功，共发送", count, "字节")
 	}
 }
 

@@ -11,8 +11,6 @@ import (
 	adapter "melee_game_server/plugins/kcp/adapter"
 	mq "melee_game_server/plugins/kcp/messageQueue"
 	"net"
-
-	kcp "github.com/xtaci/kcp-go"
 )
 
 /*
@@ -58,7 +56,8 @@ func (box *Mailbox) Init(addr string, recvSize uint32, sendSize uint32) {
  */
 func (box *Mailbox) Start() error {
 	//基于KCP协议监听套接字端口
-	listener, err := kcp.Listen(box.addr)
+	//listener, err := kcp.Listen(box.addr)
+	listener, err := net.Listen("tcp", box.addr)
 	if err != nil {
 		log.Println(err)
 		return errors.New("启动mailbox失败:" + err.Error())

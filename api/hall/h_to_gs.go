@@ -16,3 +16,7 @@ type CreateNormalGameRequest struct {
 type StartNormalGameRequest struct {
 	RoomId int32
 }
+
+type DestroyGameRoomRequest struct {
+	RoomId int32
+}

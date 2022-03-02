@@ -83,6 +83,7 @@ func PlayerEnterGameRequestCallback(msg *api.Mail, room *NormalGameRoom) {
 			time.Sleep(50 * time.Millisecond)
 			close(room.Prepare)
 		}
+		return
 	}
 
 	logger.Errorf("[PlayerEnterGameRequestCallback]游戏开始后有有玩家请求加入!playerId:%d\n", msg.Msg.Request.PlayerEnterGameRequest.PlayerId)
@@ -159,6 +160,8 @@ func HeroMovementChangeRequestCallback(msg *api.Mail, room *NormalGameRoom) {
 		broad := codec.Encode(&pb.HeroMovementChangeBroadcast{
 			HeroId:           hid,
 			HeroMovementType: req.HeroMovementType,
+			Time:             req.Time,
+			HeroPosition:     req.Position,
 		})
 		room.GetNetServer().SendByHeroId(broadHeroes, broad)
 		return

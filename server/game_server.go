@@ -26,9 +26,10 @@ var GameTypeIdMap = map[int32]framework.GameRoom{
 }
 
 type GameServer struct {
-	grm  *GameRoomManger
-	Port string
-	Net  api.NetPlugin
+	grm         *GameRoomManger
+	HallRpcPort string
+	ClientPort  string
+	Net         api.NetPlugin
 }
 
 //newGameServer 创建一个GameServer,单例模式,所以不对外暴露
@@ -44,14 +45,14 @@ func newGameServer() *GameServer {
 func (gs *GameServer) Run() {
 	//开启rpc服务
 	//todo 根据部署后期调整
-	l, e := net.Listen("tcp", ":1234")
+	l, e := net.Listen("tcp", gs.HallRpcPort)
 	if e != nil {
 		log.Fatal("无法监听:", e)
 	}
 	gs.serveRpc(l)
 
 	//开启监听客户端的kcp服务
-	kcp.StartKCP("0.0.0.0:"+gs.Port, 1024, 1024)
+	kcp.StartKCP("0.0.0.0"+gs.ClientPort, 1024, 1024)
 
 	go gs.DispatchMail()
 }

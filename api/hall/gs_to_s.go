@@ -17,3 +17,17 @@ type CreateNormalGameResponse struct {
 type StartNormalGameResponse struct {
 	Ok bool
 }
+
+// RoomStatus 结束游戏/返回游戏当前状态有关
+type RoomStatus int
+
+const (
+	RoomInitStatus       RoomStatus = 1
+	RoomStartStatus      RoomStatus = 2
+	RoomDestroyingStatus RoomStatus = 3
+)
+
+type DestroyGameRoomResponse struct {
+	Status RoomStatus
+	Ok     bool
+}

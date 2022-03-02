@@ -20,7 +20,7 @@ func (gs *GameServer) DispatchMail() {
 			logger.Errorf("receive error msg:%v", mail.Msg)
 			continue
 		}
-		fmt.Printf("room id:%v\n", mail.Msg.Request.RoomId)
+		fmt.Printf("receive:%v\n", mail.Msg.Request)
 		room, ok := gs.grm.GetRoom(mail.Msg.Request.RoomId)
 		if !ok {
 			logger.Errorf("receive room not exist msg:%v", mail.Msg)

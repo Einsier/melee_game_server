@@ -19,6 +19,7 @@ func (gs *GameServer) CreateNormalGameRoom(req *hall.CreateNormalGameRequest, re
 		resp.Ok = false
 		return err
 	}
+	connectInfo.ClientPort = gs.ClientPort
 	resp.ConnectionInfo = connectInfo
 	resp.Ok = true
 	logger.Testf("分配%d房间号给hall", resp.ConnectionInfo.Id)
@@ -33,5 +34,17 @@ func (gs *GameServer) StartNormalGame(req *hall.StartNormalGameRequest, resp *ha
 		return err
 	}
 	resp.Ok = true
+	return nil
+}
+
+func (gs *GameServer) DestroyGameRoom(req *hall.DestroyGameRoomRequest, resp *hall.DestroyGameRoomResponse) error {
+	rId := req.RoomId
+	room, ok := gs.grm.GetRoom(rId)
+	if ok == false {
+		resp.Ok = false
+		return nil
+	}
+	room.ForceStopGame()
+	logger.Infof("room:%d已经被强制关闭\n", req.RoomId)
 	return nil
 }

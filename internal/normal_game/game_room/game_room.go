@@ -76,6 +76,7 @@ func (room *NormalGameRoom) Init(info *game_room.RoomInitInfo) {
 	}
 	room.requestController = NewRequestController()
 	room.timeEventController = NewTimeEventController(room)
+	logger.Infof("房间%d初始化完毕", room.Id)
 }
 
 //Start 开始游戏,先开启kcp服务器,接收玩家的PlayerEnterGameRequest请求,根据init传过来的JoinPlayers进行身份校验,
@@ -84,7 +85,7 @@ func (room *NormalGameRoom) Init(info *game_room.RoomInitInfo) {
 func (room *NormalGameRoom) Start() {
 	room.Status = configs.NormalGameWaitPlayerStatus
 	//room.netServer.Start()
-	go room.requestController.Work2(room)
+	go room.requestController.Work1(room)
 	<-room.Prepare
 	logger.Info("所有玩家准备就绪,开始游戏")
 	logger.Test("所有玩家准备就绪,开始游戏")
@@ -93,7 +94,7 @@ func (room *NormalGameRoom) Start() {
 	room.netServer.SendToAllPlayerConn(codec.Encode(&proto.GameStartBroadcast{HeroId: -1})) //发消息通知所有的玩家游戏开始
 	room.Status = configs.NormalGameStartStatus
 	room.GetTimeEventController().AddEvent(CleanOverTimeBulletTimeEvent)
-	room.GetTimeEventController().AddEvent(RefreshPropsTimeEvent)
+	//room.GetTimeEventController().AddEvent(RefreshPropsTimeEvent)
 	<-room.leave
 	room.GetTimeEventController().Destroy()
 	room.Status = configs.NormalGameGameDestroyingStatus
@@ -116,4 +117,9 @@ func (room *NormalGameRoom) GetRoomInfo() *game_room.RoomInfo {
 
 func (room *NormalGameRoom) PutMsg(mail *api.Mail) {
 	room.netServer.ReqChan <- mail
+}
+
+//ForceStopGame todo
+func (room *NormalGameRoom) ForceStopGame() (ok bool) {
+	return true
 }

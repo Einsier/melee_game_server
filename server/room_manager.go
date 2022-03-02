@@ -37,6 +37,18 @@ func (grm *GameRoomManger) GetFreeId() (ret int32) {
 		grm.mu.Unlock()
 		break
 	}
+
+	//todo 测试用,只固定开放房间1的话把下面的注释去掉,把上面的for注释掉
+	/*	grm.mu.Lock()
+		_, ok := grm.gameRooms[1]
+		if ok {
+			grm.mu.Unlock()
+			panic("room1 已经被占用")
+		}
+		grm.gameRooms[1] = *new(framework.GameRoom)
+		grm.mu.Unlock()
+		ret = 1*/
+
 	return ret
 }
 
@@ -53,6 +65,7 @@ func (grm *GameRoomManger) AddNormalGameRoom(playerInfo []*framework.PlayerInfo)
 		<-info.Over
 		//todo 结束事件,数据库持久化对局信息等
 		fmt.Printf("对局:%v已结束\n", roomId)
+		grm.DeleteGameRoom(roomId)
 	}(info.Id)
 
 	grm.mu.Lock()
@@ -64,6 +77,14 @@ func (grm *GameRoomManger) AddNormalGameRoom(playerInfo []*framework.PlayerInfo)
 	connInfo := new(framework.RoomConnectionInfo)
 	connInfo.Id = info.Id
 	return connInfo, nil
+}
+
+//DeleteGameRoom 只是从注册列表中删除GameRoom,不会对GameRoom内部逻辑产生影响
+func (grm *GameRoomManger) DeleteGameRoom(roomId int32) {
+	grm.mu.Lock()
+	defer grm.mu.Unlock()
+
+	delete(grm.gameRooms, roomId)
 }
 
 //StartNormalGame 开始游戏

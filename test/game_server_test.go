@@ -46,14 +46,14 @@ func TestSimuHall(t *testing.T) {
 	createReq.PlayerInfo = []*framework.PlayerInfo{
 		{PlayerId: 1},
 		{PlayerId: 2},
-		{PlayerId: 3},
-		{PlayerId: 4},
-		{PlayerId: 5},
-		{PlayerId: 6},
-		{PlayerId: 7},
-		{PlayerId: 8},
-		{PlayerId: 9},
-		{PlayerId: 10},
+		/*		{PlayerId: 3},
+				{PlayerId: 4},
+				{PlayerId: 5},
+				{PlayerId: 6},
+				{PlayerId: 7},
+				{PlayerId: 8},
+				{PlayerId: 9},
+				{PlayerId: 10},*/
 	}
 	createResp := new(hall.CreateNormalGameResponse)
 	callRpc("GameServer.CreateNormalGameRoom", createReq, createResp)

@@ -5,6 +5,7 @@ import (
 	"log"
 	"melee_game_server/api/hall"
 	framework "melee_game_server/framework/game_room"
+	"net"
 	"net/rpc"
 	"testing"
 )
@@ -46,14 +47,14 @@ func TestSimuHall(t *testing.T) {
 	createReq.PlayerInfo = []*framework.PlayerInfo{
 		{PlayerId: 1},
 		{PlayerId: 2},
-		/*		{PlayerId: 3},
-				{PlayerId: 4},
-				{PlayerId: 5},
-				{PlayerId: 6},
-				{PlayerId: 7},
-				{PlayerId: 8},
-				{PlayerId: 9},
-				{PlayerId: 10},*/
+		{PlayerId: 3},
+		{PlayerId: 4},
+		{PlayerId: 5},
+		{PlayerId: 6},
+		{PlayerId: 7},
+		{PlayerId: 8},
+		{PlayerId: 9},
+		{PlayerId: 10},
 	}
 	createResp := new(hall.CreateNormalGameResponse)
 	callRpc("GameServer.CreateNormalGameRoom", createReq, createResp)
@@ -74,5 +75,19 @@ func callRpc(rpcName string, args interface{}, reply interface{}) {
 	if err != nil {
 		log.Fatal("rpc调用时出现:", err)
 	}
-	fmt.Printf("reply:%v\n", reply)
+}
+
+func TestIp(t *testing.T) {
+	addrs, err := net.InterfaceAddrs()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for _, address := range addrs {
+		if ipnet, ok := address.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
+			if ipnet.IP.To4() != nil {
+				fmt.Printf("%s\n", ipnet.IP.String())
+			}
+		}
+	}
 }

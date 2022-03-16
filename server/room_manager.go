@@ -38,8 +38,8 @@ func (grm *GameRoomManger) GetFreeId() (ret int32) {
 		break
 	}
 
-	//todo 测试用,只固定开放房间1的话把下面的注释去掉,把上面的for注释掉
-	/*	grm.mu.Lock()
+	/*	//todo 测试用,只固定开放房间1的话把下面的注释去掉,把上面的for注释掉
+		grm.mu.Lock()
 		_, ok := grm.gameRooms[1]
 		if ok {
 			grm.mu.Unlock()

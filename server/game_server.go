@@ -28,7 +28,7 @@ var GameTypeIdMap = map[int32]framework.GameRoom{
 type GameServer struct {
 	grm         *GameRoomManger
 	HallRpcPort string
-	ClientPort  string
+	ClientAddr  string
 	Net         api.NetPlugin
 }
 
@@ -52,7 +52,7 @@ func (gs *GameServer) Run() {
 	gs.serveRpc(l)
 
 	//开启监听客户端的kcp服务
-	kcp.StartKCP("0.0.0.0"+gs.ClientPort, 1024, 1024)
+	kcp.StartKCP(gs.ClientAddr, 1024, 1024)
 
 	go gs.DispatchMail()
 }

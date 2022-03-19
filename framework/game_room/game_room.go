@@ -1,6 +1,8 @@
 package game_room
 
-import "melee_game_server/framework/game_net/api"
+import (
+	"melee_game_server/framework/game_net/api"
+)
 
 type RoomInfo struct {
 }
@@ -20,7 +22,7 @@ type RoomInitInfo struct {
 
 type RoomConnectionInfo struct {
 	Id         int32
-	ClientPort string
+	ClientAddr string
 }
 
 type GameRoom interface {
@@ -32,4 +34,6 @@ type GameRoom interface {
 	//ForceStopGame 强制停止游戏,包括给所有正在游戏中的玩家发送游戏结束广播,断开所有的kcp/tcp连接,向外围的game_server发送
 	//游戏结束信号(通过关闭信道等)
 	ForceStopGame() (ok bool)
+	//GetGameAccount()*hall.GameAccountInfo
+	GetGameAccount() interface{}
 }

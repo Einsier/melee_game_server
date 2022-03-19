@@ -2,6 +2,7 @@ package game_room
 
 import (
 	"melee_game_server/api/client/proto"
+	"melee_game_server/api/hall"
 	configs "melee_game_server/configs/normal_game_type_configs"
 	"melee_game_server/framework/game_net/api"
 	"melee_game_server/framework/game_room"
@@ -22,12 +23,16 @@ import (
 type NormalGameRoom struct {
 	Id int32
 	//port                string
-	Prepare             chan interface{} //所有玩家都已连入游戏
-	leave               chan interface{} //玩家都已经离开
-	over                chan struct{}    //用于向game_server汇报的
-	TestRequestChan     chan *api.Mail   //用于测试的chan,把Mail传进去交给RequestController处理
-	PlayerNum           int32            //当前的存活的玩家数目
-	Status              int32            //当前的状态
+	Prepare         chan interface{} //所有玩家都已连入游戏
+	leave           chan interface{} //玩家都已经离开
+	over            chan struct{}    //用于向game_server汇报的
+	TestRequestChan chan *api.Mail   //用于测试的chan,把Mail传进去交给RequestController处理
+	PlayerNum       int32            //当前的存活的玩家数目
+	Status          int32            //当前的状态
+
+	StartTime time.Time
+	EndTime   time.Time
+
 	heroManager         *HeroesManager
 	propsManager        *PropsManager
 	bulletsManager      *BulletsManager
@@ -35,6 +40,7 @@ type NormalGameRoom struct {
 	playersManager      *PlayersManager
 	requestController   *RequestController
 	timeEventController *TimeEventController
+	honorManager        *HonorManager
 }
 
 func (room *NormalGameRoom) GetHeroesManager() *HeroesManager {
@@ -71,8 +77,10 @@ func (room *NormalGameRoom) Init(info *game_room.RoomInitInfo) {
 	room.bulletsManager = NewBulletsManager()
 	room.netServer = gn.NewNormalGameNetServer(info.Id)
 	room.playersManager = NewPlayersManager()
+	room.honorManager = NewHonorManager()
 	for _, pi := range info.JoinPlayers {
 		room.playersManager.AddPlayer(gt.NewPlayer(pi.PlayerId))
+		room.honorManager.AddPlayerHonor(pi.PlayerId)
 	}
 	room.requestController = NewRequestController()
 	room.timeEventController = NewTimeEventController(room)
@@ -85,10 +93,12 @@ func (room *NormalGameRoom) Init(info *game_room.RoomInitInfo) {
 func (room *NormalGameRoom) Start() {
 	room.Status = configs.NormalGameWaitPlayerStatus
 	//room.netServer.Start()
-	go room.requestController.Work1(room)
+	//go room.requestController.Work1(room)
+	go room.requestController.Work2(room)
 	<-room.Prepare
 	logger.Info("所有玩家准备就绪,开始游戏")
 	logger.Test("所有玩家准备就绪,开始游戏")
+	room.StartTime = time.Now()
 	//代码执行到这里,所有的玩家都已经准备好
 	time.Sleep(20 * time.Millisecond)                                                       //等待最后一个分配heroId的包到达
 	room.netServer.SendToAllPlayerConn(codec.Encode(&proto.GameStartBroadcast{HeroId: -1})) //发消息通知所有的玩家游戏开始
@@ -98,6 +108,7 @@ func (room *NormalGameRoom) Start() {
 	<-room.leave
 	room.GetTimeEventController().Destroy()
 	room.Status = configs.NormalGameGameDestroyingStatus
+	room.EndTime = time.Now()
 	logger.Info("所有玩家已经离开,准备进行清理工作")
 	logger.Test("所有玩家已经离开,准备进行清理工作")
 	//todo 清理工作/持久化数据给数据库等
@@ -122,4 +133,13 @@ func (room *NormalGameRoom) PutMsg(mail *api.Mail) {
 //ForceStopGame todo
 func (room *NormalGameRoom) ForceStopGame() (ok bool) {
 	return true
+}
+
+//GetGameAccount 获取游戏结算信息(为了接口的不能循环依赖,这里把返回值改成了interface类型)
+func (room *NormalGameRoom) GetGameAccount() interface{} {
+	gameAccount := new(hall.GameAccountInfo)
+	gameAccount.StartTime = room.StartTime.UnixNano()
+	gameAccount.EndTime = room.EndTime.UnixNano()
+	gameAccount.PlayerAccountMap = room.honorManager.GetAllPlayerHonor()
+	return gameAccount
 }

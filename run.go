@@ -13,9 +13,9 @@ import (
 *@Version 1.0
 *@Description:mvp1版本的game_room的暂时的启动方式
  */
-
+//1.116.109.113
 var hallRpcPortFlag = flag.String("hallRpcPort", ":8000", "set the port of rpc in order to communicate with hall")
-var clientPortFlag = flag.String("clientPort", ":8001", "set the port of kcp in order to communicate with client")
+var clientTcpAddrFlag = flag.String("clientAddr", "localhost:8001", "set the port of tcp in order to communicate with client")
 
 /*func SimuHall() {
 	createReq := new(hall.CreateNormalGameRequest)
@@ -55,11 +55,10 @@ func callRpc(rpcName string, args interface{}, reply interface{}) {
 func main() {
 	flag.Parse()
 	server.GS.HallRpcPort = *hallRpcPortFlag
-	server.GS.ClientPort = *clientPortFlag
+	server.GS.ClientAddr = *clientTcpAddrFlag
 	server.GS.Run()
 
-	logger.Infof("开启game server:大厅服务器rpc端口[%s],客户端kcp端口[%s]\n", *hallRpcPortFlag, *clientPortFlag)
-	time.Sleep(10 * time.Millisecond)
+	logger.Infof("开启game server:大厅服务器rpc端口[%s],客户端kcp地址[%s]\n", *hallRpcPortFlag, *clientTcpAddrFlag)
 
 	//SimuHall()
 	time.Sleep(100 * time.Minute)

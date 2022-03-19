@@ -14,12 +14,14 @@ import (
 
 //CreateNormalGameRoom hall排完队之后通知game_server,开启一个game_room,用于玩家加入对局
 func (gs *GameServer) CreateNormalGameRoom(req *hall.CreateNormalGameRequest, resp *hall.CreateNormalGameResponse) error {
-	connectInfo, err := gs.grm.AddNormalGameRoom(req.PlayerInfo)
+	//创建房间
+	connectInfo, err := gs.grm.AddNormalGameRoom(req.PlayerInfo, req.GameId)
 	if err != nil {
 		resp.Ok = false
 		return err
 	}
-	connectInfo.ClientPort = gs.ClientPort
+
+	connectInfo.ClientAddr = gs.ClientAddr
 	resp.ConnectionInfo = connectInfo
 	resp.Ok = true
 	logger.Testf("分配%d房间号给hall", resp.ConnectionInfo.Id)

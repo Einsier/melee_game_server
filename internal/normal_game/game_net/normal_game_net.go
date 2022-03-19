@@ -13,7 +13,7 @@ import (
 *@Date 2022/1/18
 *@Version 2.0
 *@Description:每个game_room拥有一个的网络接口.用于从全局消息队列中接收消息,或者发给玩家
-2.0版本:整个的game_server使用一个kcp网络,即GlobalKcp
+2.0版本:整个的game_server使用一个kcp网络
 */
 
 //NormalGameNetServer 普通游戏(玩家全部进入才开始)的GameNetServer,全部玩家都完成与game_server的注册之后才开始游戏,

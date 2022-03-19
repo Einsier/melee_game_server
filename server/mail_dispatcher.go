@@ -17,7 +17,7 @@ func (gs *GameServer) DispatchMail() {
 	for {
 		mail := gs.Net.Receive()
 		if mail.Msg == nil || mail.Msg.Request == nil {
-			logger.Errorf("receive error msg:%v", mail.Msg)
+			//logger.Errorf("receive error msg:%v", mail.Msg)
 			continue
 		}
 		fmt.Printf("receive:%v\n", mail.Msg.Request)

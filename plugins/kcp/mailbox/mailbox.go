@@ -107,7 +107,7 @@ func (box *Mailbox) Shutdown() {
 func (box *Mailbox) Receive() *mail.Mail {
 	msg, err := box.receiveMQ.Get()
 	if err != nil {
-		log.Println(err)
+		//log.Println(err)
 		return nil
 	}
 	mailPtr := msg.(*mail.Mail)
@@ -161,6 +161,9 @@ func (box *Mailbox) sendMQHandler() {
 func (box *Mailbox) receiveHandler(conn net.Conn) *pb.TopMessage {
 	for {
 		msg := adapter.Receive(conn)
+		if msg == nil {
+			return nil
+		}
 		mail := mail.Mail{Conn: conn, Msg: msg}
 		box.receiveMQ.Put(&mail)
 	}

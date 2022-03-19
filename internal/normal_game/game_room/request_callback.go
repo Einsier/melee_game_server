@@ -122,6 +122,9 @@ func PlayerQuitGameRequestCallback(msg *api.Mail, room *NormalGameRoom) {
 		n := atomic.AddInt32(&room.PlayerNum, -1)
 		room.GetNetServer().DeleteConn(req.HeroId, pid)
 		logger.Infof("playerId为:%d,heroId为:%d的玩家已退出游戏,当前剩余%d人\n", pid, req.HeroId, n)
+
+		//更新玩家荣誉信息
+		room.honorManager.GetPlayerHonor(pid).SetAliveTime(room.StartTime.UnixNano() - time.Now().UnixNano())
 		if n == 0 {
 			//如果所有玩家都已经退出,则通知game_room
 			close(room.leave)

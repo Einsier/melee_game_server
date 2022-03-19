@@ -11,6 +11,7 @@ import framework "melee_game_server/framework/game_room"
 
 type CreateNormalGameRequest struct {
 	PlayerInfo []*framework.PlayerInfo
+	GameId     string //作为etcd的路径,游戏结束之后由server通知hall,方便hall落库
 }
 
 type StartNormalGameRequest struct {

@@ -31,3 +31,17 @@ type DestroyGameRoomResponse struct {
 	Status RoomStatus
 	Ok     bool
 }
+
+//GameAccountInfo 对局结算信息
+type GameAccountInfo struct {
+	StartTime        int64
+	EndTime          int64
+	PlayerAccountMap map[int32]*PlayerAccountInfo
+}
+
+//PlayerAccountInfo 玩家结算信息
+type PlayerAccountInfo struct {
+	Id        int32 //玩家id
+	KillNum   int32 //击杀数
+	AliveTime int64 //生存时间
+}

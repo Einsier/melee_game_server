@@ -22,7 +22,7 @@ var EtcdCli = NewEtcdCli()
 
 func NewEtcdCli() *clientv3.Client {
 	cli, err := clientv3.New(clientv3.Config{
-		Endpoints:   []string{"localhost:2379"},
+		Endpoints:   []string{configs.EtcdAddr},
 		DialTimeout: 5 * time.Second,
 	})
 	if err != nil {

@@ -12,5 +12,5 @@ ENV ENV_ETCD_ADDR=$ETCD_ADDR
 WORKDIR  /root/go/src/github.com/einsier/ustc_melee_game
 COPY --from=builder  /root/go/src/github.com/einsier/ustc_melee_game/game-server .
 EXPOSE 8000/tcp
-EXPOSE 8001/tcp
+EXPOSE 32004/tcp
 ENTRYPOINT ./game-server -etcdAddr $ENV_ETCD_ADDR

@@ -69,5 +69,5 @@ jobs:
         run: |
           (cd deployments && ./../kustomize edit set image ${{ env.IMAGE_NAME }}=${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }})
           (cd deployments && ./../kustomize build . | kubectl -n ${{ env.NAMESPACE }} apply  -f - )
-          kubectl -n ${{ env.NAMESPACE }} rollout status deployment/${{ env.NAME }}
+          kubectl -n ${{ env.NAMESPACE }} rollout status statefulset/${{ env.NAME }}
           kubectl -n ${{ env.NAMESPACE }} get services -o wide

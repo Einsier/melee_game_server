@@ -17,8 +17,8 @@ import (
 
 //腾讯服务器地址:1.116.109.113
 var hallRpcPortFlag = flag.String("hallRpcPort", ":8000", "set the port of rpc in order to communicate with hall")
-var clientTcpAddrFlag = flag.String("clientAddr", "localhost:8001", "set the port of tcp in order to communicate with client")
-var etcdAddrFlag = flag.String("etcdAddr", "localhost:2379", "set the address of etcd")
+var clientTcpAddrFlag = flag.String("clientAddr", "49.234.245.172:32004", "set the port of tcp in order to communicate with client")
+var etcdAddrFlag = flag.String("etcdAddr", "42.192.200.194:2379", "set the address of etcd")
 
 func ParseFlags() {
 	flag.Parse()

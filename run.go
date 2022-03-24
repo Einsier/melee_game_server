@@ -25,6 +25,7 @@ func ParseFlags() {
 	server.GS.HallRpcPort = *hallRpcPortFlag
 	server.GS.ClientAddr = *clientTcpAddrFlag
 	configs.EtcdAddr = *etcdAddrFlag
+	server.EtcdCli = server.NewEtcdCli()
 }
 
 func main() {

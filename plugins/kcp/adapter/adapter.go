@@ -5,6 +5,7 @@ import (
 	"log"
 	pb "melee_game_server/api/client/proto"
 	codec "melee_game_server/plugins/kcp/codec"
+	"melee_game_server/plugins/logger"
 	"net"
 )
 
@@ -28,7 +29,7 @@ func Receive(conn net.Conn) *pb.TopMessage {
 	buffer := make([]byte, bufferSize)
 	count, err := conn.Read(buffer)
 	if err != nil {
-		log.Println(err)
+		logger.Infof("tcp:检测到%s断开与gs的连接", conn.RemoteAddr())
 		return nil
 	}
 	msg := codec.Decode(buffer[0:count])

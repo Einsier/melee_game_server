@@ -107,7 +107,6 @@ func (box *Mailbox) Shutdown() {
 func (box *Mailbox) Receive() *mail.Mail {
 	msg, err := box.receiveMQ.Get()
 	if err != nil {
-		//log.Println(err)
 		return nil
 	}
 	mailPtr := msg.(*mail.Mail)
@@ -156,16 +155,18 @@ func (box *Mailbox) sendMQHandler() {
  *函数名:
  *	receiveHandler
  *功能:
- *	接受连接中的消息,封装成为Mail对象，存放到box.receiveMQ中
+ *	接受连接中的消息,封装成为Mail对象，存放到box.receiveMQ中,如果接收到错误的消息,返回nil并断开连接
  */
 func (box *Mailbox) receiveHandler(conn net.Conn) *pb.TopMessage {
 	for {
 		msg := adapter.Receive(conn)
+		m := mail.Mail{Conn: conn, Msg: msg}
+		box.receiveMQ.Put(&m)
 		if msg == nil {
+			//如果收到下层返回的空包,那么本层放到mq中,通知上层之后,自己退出
+			conn.Close()
 			return nil
 		}
-		mail := mail.Mail{Conn: conn, Msg: msg}
-		box.receiveMQ.Put(&mail)
 	}
 }
 

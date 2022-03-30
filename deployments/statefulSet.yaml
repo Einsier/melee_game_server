@@ -1,0 +1,41 @@
+# headless service
+apiVersion: v1
+kind: Service
+metadata:
+  name: game-server-internal
+  labels:
+    app: game-server
+spec:
+  ports:
+    - port: 32003
+      targetPort: 8000
+  selector:
+    app: game-server
+  clusterIP: None
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: game-server
+spec:
+  selector:
+    matchLabels:
+      app: game-server
+  serviceName: "game-server-internal"
+  replicas: 1 # by default is 1
+  template:
+    metadata:
+      labels:
+        app: game-server
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+        - name: game-server
+          image: melee-game-game-server
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000
+              protocol: TCP
+            - containerPort: 32004
+              protocol: TCP
+      restartPolicy: Always

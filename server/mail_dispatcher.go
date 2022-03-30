@@ -17,15 +17,12 @@ func (gs *GameServer) DispatchMail() {
 	for {
 		mail := gs.Net.Receive()
 		if mail.Msg == nil || mail.Msg.Request == nil {
-			//logger.Errorf("receive error msg:%v", mail.Msg)
+			logger.Errorf("Dispatcher receive empty msg from:%s", mail.Conn.RemoteAddr())
 			continue
 		}
 		fmt.Printf("receive:%v\n", mail.Msg.Request)
-		room, ok := gs.grm.GetRoom(mail.Msg.Request.RoomId)
-		if !ok {
-			logger.Errorf("receive room not exist msg:%v", mail.Msg)
-			continue
-		}
-		room.PutMsg(mail)
+
+		//修改在putMsg的时候对整体的room manager加读锁,这样不会出现没有删除房间,但是管道关闭,往空管道写数据引发panic的情况
+		gs.grm.PutMsg(mail.Msg.Request.RoomId, mail)
 	}
 }

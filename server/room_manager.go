@@ -2,9 +2,9 @@ package server
 
 import (
 	"errors"
-	"fmt"
 	"math/rand"
 	"melee_game_server/api/hall"
+	"melee_game_server/framework/game_net/api"
 	framework "melee_game_server/framework/game_room"
 	ngr "melee_game_server/internal/normal_game/game_room"
 	"melee_game_server/plugins/logger"
@@ -64,13 +64,15 @@ func (grm *GameRoomManger) AddNormalGameRoom(playerInfo []*framework.PlayerInfo,
 
 	go func(roomId int32, room framework.GameRoom) {
 		<-info.Over
-		//todo 结束事件,数据库持久化对局信息等
-		fmt.Printf("对局:%v已结束\n", roomId)
 
+		logger.Infof("对局:%v已结束,已关闭通信管道,删除房间\n", roomId)
 		accountInfo := room.GetGameAccount().(*hall.GameAccountInfo)
 		SetAccountToEtcd(gameId, accountInfo)
 		logger.Infof("gameId:%s 的对局结算信息已放入etcd", gameId)
+
+		//关闭房间的消息管道和删除房间同时做,防止往空管道填东西引发panic
 		grm.DeleteGameRoom(roomId)
+
 	}(info.Id, room)
 
 	grm.mu.Lock()
@@ -89,6 +91,13 @@ func (grm *GameRoomManger) DeleteGameRoom(roomId int32) {
 	grm.mu.Lock()
 	defer grm.mu.Unlock()
 
+	room, ok := grm.GetRoom(roomId)
+	if !ok {
+		logger.Errorf("删除不存在的房间!\n")
+		return
+	}
+	logger.Infof("已关闭房间%d的消息管道\n", roomId)
+	room.CloseMsgChan()
 	delete(grm.gameRooms, roomId)
 }
 
@@ -108,4 +117,17 @@ func (grm *GameRoomManger) GetRoom(id int32) (framework.GameRoom, bool) {
 	defer grm.mu.RUnlock()
 	room, ok := grm.gameRooms[id]
 	return room, ok
+}
+
+func (grm *GameRoomManger) PutMsg(roomId int32, mail *api.Mail) {
+	grm.mu.RLock()
+	defer grm.mu.RUnlock()
+
+	//这里加读锁锁住关闭管道
+	room, ok := grm.gameRooms[roomId]
+	if !ok {
+		logger.Errorf("收到了不存在房间的信息,roomId:%d\n", roomId)
+		return
+	}
+	room.PutMsg(mail)
 }

@@ -11,6 +11,7 @@ import (
 	adapter "melee_game_server/plugins/kcp/adapter"
 	mq "melee_game_server/plugins/kcp/messageQueue"
 	"net"
+	"sync"
 )
 
 /*
@@ -29,6 +30,7 @@ type Mailbox struct {
 	sendMQ    mq.MsgQueue
 	//记录客户端Conn和与之对应chan的map。
 	//将要从指定Conn发送的消息将会首先被放入对应的chan中
+	mutex    sync.Mutex
 	channels map[net.Conn]chan *pb.TopMessage
 }
 
@@ -79,7 +81,9 @@ func (box *Mailbox) Start() error {
 			//存放将要从这个连接发送出去的消息
 			channel := make(chan *pb.TopMessage, 1)
 			//在map中注册连接和通道的对应关系
+			box.mutex.Lock()
 			box.channels[conn] = channel
+			box.mutex.Unlock()
 			//为新建立的连接启动收发消息的goroutine
 			go box.receiveHandler(conn)
 			go box.sendHandler(conn)
@@ -145,7 +149,9 @@ func (box *Mailbox) sendMQHandler() {
 		replyPtr := msg.(*mail.ReplyMail)
 		//投递给所有接受消息的连接
 		for _, connPtr := range replyPtr.ConnSlice {
+			box.mutex.Lock()
 			channel := box.channels[connPtr]
+			box.mutex.Unlock()
 			channel <- replyPtr.Msg
 		}
 	}
@@ -177,7 +183,9 @@ func (box *Mailbox) receiveHandler(conn net.Conn) *pb.TopMessage {
  *	将派送到通道中的消息真正地从连接中发送出去
  */
 func (box *Mailbox) sendHandler(conn net.Conn) {
+	box.mutex.Lock()
 	channel := box.channels[conn]
+	box.mutex.Unlock()
 	for {
 		reply := <-channel
 		adapter.Send(conn, reply)

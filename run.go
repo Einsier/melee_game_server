@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"melee_game_server/configs"
+	"melee_game_server/configs/normal_game_type_configs"
 	"melee_game_server/plugins/logger"
 	"melee_game_server/server"
 	"time"
@@ -20,6 +21,7 @@ var hallRpcPortFlag = flag.String("hallRpcPort", ":8000", "set the port of rpc i
 var clientTcpAddrFlag = flag.String("clientAddr", "49.234.245.172:32004", "set the port of tcp in order to communicate with client")
 var etcdAddrFlag = flag.String("etcdAddr", "42.192.200.194:2379", "set the address of etcd")
 var testFlag = flag.Bool("t", false, "if this is a local test")
+var playerNumFlag = flag.Int("playerNum", 3, "configs the number of players in each game which must be same as the hall's config")
 
 func ParseFlags() {
 	flag.Parse()
@@ -36,6 +38,7 @@ func main() {
 	server.GS.HallRpcPort = *hallRpcPortFlag
 	server.GS.ClientAddr = *clientTcpAddrFlag
 	configs.EtcdAddr = *etcdAddrFlag
+	normal_game_type_configs.MaxNormalGamePlayerNum = int32(*playerNumFlag)
 	server.EtcdCli = server.NewEtcdCli()
 	server.GS.Run()
 	logger.Infof("开启game server:大厅服务器rpc端口[%s],客户端kcp地址[%s]\n", *hallRpcPortFlag, *clientTcpAddrFlag)

@@ -8,5 +8,5 @@ package normal_game_type_configs
  */
 
 //MaxNormalGamePlayerNum todo 测试用
-const MaxNormalGamePlayerNum = int32(3) //normal版本的最大玩家人数
-const MaxHeartBeatInterval = int32(10)  //单位是s
+var MaxNormalGamePlayerNum = int32(3)  //normal版本的最大玩家人数
+const MaxHeartBeatInterval = int32(10) //单位是s

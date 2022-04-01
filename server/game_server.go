@@ -54,7 +54,7 @@ func (gs *GameServer) Run() {
 
 	s := strings.Split(gs.ClientAddr, ":")
 	//开启监听客户端的kcp服务
-	kcp.StartKCP("0.0.0.0:"+s[1], 1024, 1024)
+	kcp.StartKCP("0.0.0.0:"+s[1], 16384, 16384)
 	go gs.DispatchMail()
 }
 

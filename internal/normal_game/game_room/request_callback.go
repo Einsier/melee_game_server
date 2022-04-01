@@ -73,7 +73,7 @@ func PlayerEnterGameRequestCallback(msg *api.Mail, room *NormalGameRoom) {
 		pm.hToP[hId] = pId
 		pm.pToH[pId] = hId
 		pm.RegisterLock.Unlock() //注册完再解锁,这样下次同一个玩家重复注册无论什么顺序都会检测到
-		logger.Infof("[PlayerEnterGameRequestCallback]完成玩家id:%d的玩家的注册,其heroId为:%d\n", pId, hId)
+		logger.Infof("room %d 完成玩家id:%d的玩家的注册,其heroId为:%d\n", room.Id, pId, hId)
 		atomic.AddInt32(&room.PlayerNum, 1) //GameRoom记录的玩家人数+1
 		resp.HeroId = hId
 		net.SendBySingleConn(msg.Conn, codec.Encode(&resp))

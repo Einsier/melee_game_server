@@ -88,9 +88,6 @@ func (grm *GameRoomManger) AddNormalGameRoom(playerInfo []*framework.PlayerInfo,
 
 //DeleteGameRoom 只是从注册列表中删除GameRoom,不会对GameRoom内部逻辑产生影响
 func (grm *GameRoomManger) DeleteGameRoom(roomId int32) {
-	grm.mu.Lock()
-	defer grm.mu.Unlock()
-
 	room, ok := grm.GetRoom(roomId)
 	if !ok {
 		logger.Errorf("删除不存在的房间!\n")
@@ -98,6 +95,8 @@ func (grm *GameRoomManger) DeleteGameRoom(roomId int32) {
 	}
 	logger.Infof("已关闭房间%d的消息管道\n", roomId)
 	room.CloseMsgChan()
+	grm.mu.Lock()
+	defer grm.mu.Unlock()
 	delete(grm.gameRooms, roomId)
 }
 

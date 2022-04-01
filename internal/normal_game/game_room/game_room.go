@@ -97,8 +97,8 @@ func (room *NormalGameRoom) Start() {
 	//go room.requestController.Work1(room)
 	go room.requestController.Work2(room)
 	<-room.Prepare
-	logger.Info("所有玩家准备就绪,开始游戏")
-	logger.Test("所有玩家准备就绪,开始游戏")
+	logger.Infof("room:%d 所有玩家准备就绪,开始游戏", room.Id)
+	logger.Testf("room:%d 所有玩家准备就绪,开始游戏", room.Id)
 	room.StartTime = time.Now()
 	//代码执行到这里,所有的玩家都已经准备好
 	time.Sleep(20 * time.Millisecond)                                          //等待最后一个分配heroId的包到达
@@ -115,8 +115,8 @@ func (room *NormalGameRoom) Start() {
 	room.GetTimeEventController().Destroy()
 	room.Status = configs.NormalGameGameDestroyingStatus
 	room.EndTime = time.Now()
-	logger.Info("所有玩家已经离开,准备进行清理工作")
-	logger.Test("所有玩家已经离开,准备进行清理工作")
+	logger.Info("room %d 所有玩家已经离开,准备进行清理工作", room.Id)
+	logger.Test("room %d 所有玩家已经离开,准备进行清理工作", room.Id)
 	//todo 清理工作/持久化数据给数据库等
 
 	close(room.over) //通知本game_room已经结束
@@ -193,7 +193,7 @@ func (room *NormalGameRoom) DeletePlayer(pid int32) bool {
 	hid := pm.GetHeroId(pid)
 	room.GetNetServer().DeleteConn(hid, pid)
 	pm.DeletePlayer(pm.GetPlayer(pid))
-	logger.Infof("playerId为:%d,heroId为:%d的玩家已退出游戏,当前剩余%d人\n", pid, hid, n)
+	logger.Infof("room%d playerId为:%d,heroId为:%d的玩家已退出游戏,当前剩余%d人\n", room.Id, pid, hid, n)
 
 	//更新玩家荣誉信息
 	room.honorManager.GetPlayerHonor(pid).SetAliveTime(room.StartTime.UnixNano() - time.Now().UnixNano())

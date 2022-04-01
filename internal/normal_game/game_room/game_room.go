@@ -126,7 +126,7 @@ func (room *NormalGameRoom) Start() {
 func (room *NormalGameRoom) GetNormalGameStartBroadcastInfo() *proto.TopMessage {
 	pm := room.GetPlayerManager()
 	m := make(map[int32]string) //key为玩家的heroId,value为对应玩家的nickname
-	for i := int32(1); i < configs.MaxNormalGamePlayerNum; i++ {
+	for i := int32(1); i <= configs.MaxNormalGamePlayerNum; i++ {
 		nickname := pm.GetNicknameByHeroId(i)
 		if nickname == "" {
 			logger.Errorf("获取hero id:%d nickname出错,游戏不能正常显示nickname!\n", i)

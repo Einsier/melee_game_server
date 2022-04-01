@@ -249,5 +249,5 @@ func PlayerHeartBeatRequestCallback(msg *api.Mail, room *NormalGameRoom) {
 	pid := req.PlayerId
 	ct := time.Now()
 	room.GetPlayerManager().UpdateHeartBeatTime(pid, ct)
-	//room.netServer.SendBySingleConn(msg.Conn, codec.Encode(&pb.PlayerHeartBeatResponse{ServerSendTime: ct}))
+	room.netServer.SendBySingleConn(msg.Conn, codec.Encode(&pb.PlayerHeartBeatResponse{HeartbeatId: req.GetHeartBeatId()}))
 }

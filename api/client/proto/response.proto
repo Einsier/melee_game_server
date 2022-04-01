@@ -25,5 +25,5 @@ message HeroGetPropResponse{
 }
 
 message PlayerHeartBeatResponse{
-    int64 serverSendTime = 1;
+    int32 heartbeatId = 1;
 }

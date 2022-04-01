@@ -73,5 +73,6 @@ message HeroBulletColliderHeroRequest{
 message PlayerHeartBeatRequest{
     int32       playerId        = 1;
     int32       heroId          = 2;
+    int32       heartBeatId     = 3;
 }
 

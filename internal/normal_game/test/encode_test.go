@@ -34,10 +34,10 @@ func TestEncode(t *testing.T) {
 		t.Fatalf("HeroGetPropResponse encode wrong")
 	}
 
-	resp4 := &proto.PlayerHeartBeatResponse{ServerSendTime: 1000}
+	resp4 := &proto.PlayerHeartBeatResponse{HeartbeatId: 1000}
 	msg4 := codec.Encode(resp4)
 	if msg4.TopMessageType != proto.TopMessageType_ResponseType || msg4.Response.ResponseCode != proto.ResponseCode_PlayerHeartBeatResponseCode ||
-		msg4.Response.PlayerHeartBeatResponse.ServerSendTime != 1000 {
+		msg4.Response.PlayerHeartBeatResponse.HeartbeatId != 1000 {
 		t.Fatalf("PlayerHeartBeatResponse encode wrong")
 	}
 
@@ -78,10 +78,10 @@ func TestEncode(t *testing.T) {
 		msg10.Broadcast.HeroSwordAttackBroadcast.HeroId != 2000 {
 		t.Fatalf("HeroAttackBroadcast encode wrong")
 	}
-	b7 := &proto.GameStartBroadcast{HeroId: 200}
+	b7 := &proto.GameStartBroadcast{NickNameMap: map[int32]string{1: "abc"}}
 	msg11 := codec.Encode(b7)
 	if msg11.TopMessageType != proto.TopMessageType_BroadcastType || msg11.Broadcast.BroadcastCode != proto.BroadcastCode_GameStartBroadcastCode ||
-		msg11.Broadcast.GameStartBroadcast.HeroId != 200 {
+		msg11.Broadcast.GameStartBroadcast.NickNameMap == nil {
 		t.Fatalf("GameStartBroadcast encode wrong")
 	}
 	b8 := &proto.HeroBulletLaunchBroadcast{BulletId: 1200}

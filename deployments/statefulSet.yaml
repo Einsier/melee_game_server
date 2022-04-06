@@ -7,7 +7,7 @@ metadata:
     app: game-server
 spec:
   ports:
-    - port: 32003
+    - port: 32004
       targetPort: 8000
   selector:
     app: game-server
@@ -17,6 +17,8 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: game-server
+  annotations:
+    service-per-pod-ports: "33000:32004"
 spec:
   selector:
     matchLabels:

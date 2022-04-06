@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	gt "melee_game_server/internal/normal_game/game_type"
 	"strconv"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -194,4 +195,19 @@ func TestChan2(t *testing.T) {
 	ch := make(chan struct{})
 	close(ch)
 	ch <- struct{}{}
+}
+
+func TestTransAddr(t *testing.T) {
+	hostname := "game-server-0"
+	//分割类似"game-server-0"这样的字符串
+	sp := strings.Split(hostname, "-")
+	if len(sp) == 0 {
+		log.Fatalf("HOSTNAME不正确,hostname:%s", hostname)
+	}
+	if id, err := strconv.Atoi(sp[len(sp)-1]); err != nil {
+		log.Fatalf("HOSTNAME不正确,hostname:%s", hostname)
+	} else {
+		s := "ustc-meleegame.cn:" + strconv.Itoa(33000+id)
+		fmt.Printf("%v\n", s)
+	}
 }

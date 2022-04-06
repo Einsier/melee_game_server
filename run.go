@@ -2,10 +2,14 @@ package main
 
 import (
 	"flag"
+	"log"
 	"melee_game_server/configs"
 	"melee_game_server/configs/normal_game_type_configs"
 	"melee_game_server/plugins/logger"
 	"melee_game_server/server"
+	"os"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -30,6 +34,22 @@ func ParseFlags() {
 		*hallRpcPortFlag = ":8000"
 		*clientTcpAddrFlag = "localhost:8001"
 		*etcdAddrFlag = "42.192.200.194:2379"
+	} else {
+		//如果当前是集群部署,查看自己的环境变量然后设置监听外网端口
+		hostname := os.Getenv("HOSTNAME")
+		if len(hostname) == 0 {
+			log.Fatalln("请设置-t参数表示当前非集群部署,或者设置HOSTNAME参数")
+		}
+		//分割类似"game-server-0"这样的字符串
+		sp := strings.Split(hostname, "-")
+		if len(sp) == 0 {
+			log.Fatalf("HOSTNAME不正确,hostname:%s", hostname)
+		}
+		if id, err := strconv.Atoi(sp[len(sp)-1]); err != nil {
+			log.Fatalf("HOSTNAME不正确,hostname:%s", hostname)
+		} else {
+			*clientTcpAddrFlag = "ustc-meleegame.cn:" + strconv.Itoa(33000+id)
+		}
 	}
 }
 

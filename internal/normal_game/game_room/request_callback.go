@@ -73,7 +73,7 @@ func PlayerEnterGameRequestCallback(msg *api.Mail, room *NormalGameRoom) {
 		pm.hToP[hId] = pId
 		pm.pToH[pId] = hId
 		pm.RegisterLock.Unlock() //注册完再解锁,这样下次同一个玩家重复注册无论什么顺序都会检测到
-		logger.Infof("[PlayerEnterGameRequestCallback]完成玩家id:%d的玩家的注册,其heroId为:%d\n", pId, hId)
+		logger.Infof("room %d 完成玩家id:%d的玩家的注册,其heroId为:%d\n", room.Id, pId, hId)
 		atomic.AddInt32(&room.PlayerNum, 1) //GameRoom记录的玩家人数+1
 		resp.HeroId = hId
 		net.SendBySingleConn(msg.Conn, codec.Encode(&resp))
@@ -95,40 +95,9 @@ func PlayerQuitGameRequestCallback(msg *api.Mail, room *NormalGameRoom) {
 	resp := pb.PlayerQuitGameResponse{Success: true} //如果是错误请求,同样返回true
 	req := msg.Msg.Request.PlayerQuitGameRequest
 	if room.Status == configs.NormalGameStartStatus {
-		pid := req.PlayerId
-		pm := room.GetPlayerManager()
-
-		pm.LeaveLock.Lock()
-
-		//获取用户信息状态,如果状态为已离开,不做处理,如果没有离开,则状态设为已离开并且判断是否所有玩家都离开
-		p := pm.GetPlayer(pid)
-		if p == nil {
-			pm.LeaveLock.Unlock()
-			room.GetNetServer().SendBySingleConn(msg.Conn, codec.Encode(&resp))
-			logger.Errorf("出现不属于本房间的玩家发送退出请求!playerId:%d", pid)
-			return
-		}
-		status := p.GetStatus()
-		if status == configs.PlayerLeaveGameStatus {
-			pm.LeaveLock.Unlock()
-			logger.Errorf("重复收到玩家离开消息,playerId:%d", pid)
-			room.GetNetServer().SendBySingleConn(msg.Conn, codec.Encode(&resp))
-			return
-		}
-
-		pm.GetPlayer(pid).SetStatus(configs.PlayerLeaveGameStatus)
-		pm.LeaveLock.Unlock()
+		ok := room.DeletePlayer(req.PlayerId)
+		resp.Success = ok
 		room.GetNetServer().SendBySingleConn(msg.Conn, codec.Encode(&resp))
-		n := atomic.AddInt32(&room.PlayerNum, -1)
-		room.GetNetServer().DeleteConn(req.HeroId, pid)
-		logger.Infof("playerId为:%d,heroId为:%d的玩家已退出游戏,当前剩余%d人\n", pid, req.HeroId, n)
-
-		//更新玩家荣誉信息
-		room.honorManager.GetPlayerHonor(pid).SetAliveTime(room.StartTime.UnixNano() - time.Now().UnixNano())
-		if n == 0 {
-			//如果所有玩家都已经退出,则通知game_room
-			close(room.leave)
-		}
 		return
 	}
 	logger.Errorf("[PlayerQuitGameRequestCallback]在%d阶段收到了playerId:%d,heroId:%d,的QuitGame请求!\n", room.Status, req.PlayerId, req.HeroId)
@@ -278,8 +247,7 @@ func HeroBulletColliderHeroRequestCallback(msg *api.Mail, room *NormalGameRoom) 
 func PlayerHeartBeatRequestCallback(msg *api.Mail, room *NormalGameRoom) {
 	req := msg.Msg.Request.PlayerHeartBeatRequest
 	pid := req.PlayerId
-	ct := time.Now().UnixNano()
-	logger.Infof("id为%d的玩家的c->s的传输时延为:%dms", pid, (ct-req.ClientSendTime)/1000)
+	ct := time.Now()
 	room.GetPlayerManager().UpdateHeartBeatTime(pid, ct)
-	room.netServer.SendBySingleConn(msg.Conn, codec.Encode(&pb.PlayerHeartBeatResponse{ServerSendTime: ct}))
+	room.netServer.SendBySingleConn(msg.Conn, codec.Encode(&pb.PlayerHeartBeatResponse{HeartbeatId: req.GetHeartBeatId()}))
 }

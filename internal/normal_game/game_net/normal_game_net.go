@@ -33,10 +33,9 @@ func (ngs *NormalGameNetServer) PutReqMsg(msg *gn.Mail) {
 }
 
 func NewNormalGameNetServer(roomId int32) *NormalGameNetServer {
-	//todo 把测试的网络改成超写的kcp网络
 	return &NormalGameNetServer{
 		RoomId:     roomId,
-		ReqChan:    make(chan *gn.Mail, 1024),
+		ReqChan:    make(chan *gn.Mail, 8192),
 		np:         kcp.KCP,
 		heroConn:   make(map[int32]net.Conn),
 		playerConn: make(map[int32]net.Conn),

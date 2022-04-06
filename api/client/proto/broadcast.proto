@@ -61,7 +61,7 @@ message HeroBulletLaunchBroadcast{
 }
 
 message GameStartBroadcast{
-    int32 heroId = 1;   //没啥用
+    map<int32,string> nickNameMap  = 1;         //<heroId,nickName>
 }
 
 message GameOverBroadcast{

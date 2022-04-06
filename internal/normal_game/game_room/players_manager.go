@@ -3,7 +3,9 @@ package game_room
 import (
 	configs "melee_game_server/configs/normal_game_type_configs"
 	gt "melee_game_server/internal/normal_game/game_type"
+	"melee_game_server/plugins/logger"
 	"sync"
+	"time"
 )
 
 /**
@@ -24,16 +26,34 @@ type PlayersManager struct {
 
 //GetHeroId 通过PlayerId查找hid
 func (pm *PlayersManager) GetHeroId(pid int32) int32 {
-	pm.RegisterLock.RLocker()
-	defer pm.RegisterLock.Unlock()
+	pm.RegisterLock.RLock()
+	defer pm.RegisterLock.RUnlock()
 	return pm.pToH[pid]
 }
 
 //GetPlayerId 通过HeroId查找pid
 func (pm *PlayersManager) GetPlayerId(hid int32) int32 {
-	pm.RegisterLock.RLocker()
-	defer pm.RegisterLock.Unlock()
+	pm.RegisterLock.RLock()
+	defer pm.RegisterLock.RUnlock()
 	return pm.hToP[hid]
+}
+
+//GetNicknameByHeroId 通过英雄id获取玩家的nickname
+func (pm *PlayersManager) GetNicknameByHeroId(hid int32) string {
+	pm.lock.RLock()
+	defer pm.lock.RUnlock()
+	pid, ok := pm.hToP[hid]
+	if !ok {
+		logger.Errorf("非法英雄玩家id查询:%d\n", hid)
+		return ""
+	} else {
+		pInfo, ok := pm.players[pid]
+		if !ok {
+			logger.Errorf("不存在对应的玩家:%d\n", pid)
+			return ""
+		}
+		return pInfo.Nickname
+	}
 }
 
 //IsPlayerRegistered 检查Player有没有注册过,返回false表示没注册过,应该注册
@@ -86,12 +106,21 @@ func (pm *PlayersManager) AddPlayer(p *gt.Player) {
 func (pm *PlayersManager) DeletePlayer(p *gt.Player) {
 	pm.lock.Lock()
 	defer pm.lock.Unlock()
+	if p == nil {
+		logger.Errorf("[DeletePlayer]删除空玩家\n")
+		return
+	}
 	delete(pm.players, p.Id)
 }
 
 //UpdateHeartBeatTime 更新id为pid的玩家的心跳时间,t为unixNano的int64
-func (pm *PlayersManager) UpdateHeartBeatTime(pid int32, t int64) {
+func (pm *PlayersManager) UpdateHeartBeatTime(pid int32, t time.Time) {
 	pm.lock.RLock()
 	defer pm.lock.RUnlock()
-	//ti := time.Unix()
+	p, ok := pm.players[pid]
+	if !ok {
+		logger.Errorf("更新不存在的玩家的心跳信息,pid:%d\n", pid)
+		return
+	}
+	p.SetHeartBeatTime(t)
 }

@@ -153,8 +153,8 @@ func (client *SimuClient) HeroBulletColliderHero() {
 //PlayerHeartBeat 玩家心跳检测
 func (client *SimuClient) PlayerHeartBeat() {
 	req := codec.EncodeRequest(&proto.PlayerHeartBeatRequest{
-		PlayerId:       client.playerId,
-		ClientSendTime: time.Now().UnixNano(),
+		PlayerId: client.playerId,
+		//ClientSendTime: time.Now().UnixNano(),
 	})
 	adapter.Send(client.conn, req)
 }
@@ -185,9 +185,9 @@ func (client *SimuClient) ReceiveHandle() {
 			case proto.ResponseCode_HeroGetPropResponseCode: //英雄获取道具
 				//tode
 			case proto.ResponseCode_PlayerHeartBeatResponseCode: //玩家心跳检测
-				st := msg.Response.PlayerHeartBeatResponse.ServerSendTime
-				ct := time.Now().UnixNano()
-				fmt.Printf("玩家%d心跳检测成功，时延为%dms\n", client.playerId, (ct-st)/1000)
+				//st := msg.Response.PlayerHeartBeatResponse.ServerSendTime
+				//ct := time.Now().UnixNano()
+				//fmt.Printf("玩家%d心跳检测成功，时延为%dms\n", client.playerId, (ct-st)/1000)
 			}
 		}
 		// broadcast

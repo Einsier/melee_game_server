@@ -19,10 +19,12 @@ import (
 
 var CleanOverTimeBulletTimeEvent = NewTimeEvent(CleanOverTimeBulletTimeEventCallbackId, time.Nanosecond*CleanOverTimeBulletTimeEventCallbackTimeSlice, CleanOverTimeBulletTimeEventCallback)
 var RefreshPropsTimeEvent = NewTimeEvent(RefreshPropsTimeEventCallbackId, time.Nanosecond*RefreshPropsTimeEventCallbackTimeSlice, RefreshPropsTimeEventCallback)
+var CheckHeartBeatTimeEvent = NewTimeEvent(CheckHeartBeatTimeEventCallId, 5*time.Second, CheckHeartBeatTimeEventCallback)
 
 const (
 	CleanOverTimeBulletTimeEventCallbackId = iota
 	RefreshPropsTimeEventCallbackId
+	CheckHeartBeatTimeEventCallId
 )
 
 //注意单位均为ns
@@ -76,5 +78,26 @@ func RefreshPropsTimeEventCallback(room *NormalGameRoom) {
 		})
 		room.GetNetServer().SendToAllPlayerConn(m1)
 		room.GetNetServer().SendToAllPlayerConn(m2)
+	}
+}
+
+//CheckHeartBeatTimeEventCallback 检查玩家心跳信息
+func CheckHeartBeatTimeEventCallback(room *NormalGameRoom) {
+	pm := room.GetPlayerManager()
+	//如果某个玩家的心跳包是来自这个时间之前的,可以认定这个玩家已经掉线
+	overTime := time.Now().Add(-time.Duration(configs.MaxHeartBeatInterval) * time.Second)
+	pm.lock.RLock()
+	alivePlayer := make([]*gt.Player, 0)
+	for _, player := range pm.players {
+		//不能边遍历map边删除map的东西所以先拷贝一下
+		alivePlayer = append(alivePlayer, player)
+	}
+	aliveNum := len(pm.players)
+	pm.lock.RUnlock()
+	for i := 0; i < aliveNum; i++ {
+		if alivePlayer[i].GetHeartBeatTime().Before(overTime) {
+			logger.Infof("玩家%d已经掉线,将其删除\n", alivePlayer[i].Id)
+			room.DeletePlayer(alivePlayer[i].Id)
+		}
 	}
 }

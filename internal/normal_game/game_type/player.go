@@ -2,6 +2,7 @@ package game_type
 
 import (
 	configs "melee_game_server/configs/normal_game_type_configs"
+	framework "melee_game_server/framework/game_room"
 	"net"
 	"sync"
 	"time"
@@ -28,12 +29,14 @@ type Player struct {
 }
 
 //NewPlayer 如果该Player还没有登录游戏,则heroId应该为-1
-func NewPlayer(id int32) *Player {
+func NewPlayer(info *framework.PlayerInfo) *Player {
 	return &Player{
-		Id:     id,
-		HeroId: -1,
-		Conn:   nil,
-		Status: configs.PlayerNotRegisteredStatus,
+		Id:            info.PlayerId,
+		HeroId:        -1,
+		Conn:          nil,
+		Status:        configs.PlayerNotRegisteredStatus,
+		Nickname:      info.NickName,
+		heartBeatTime: time.Now().Add(time.Second * 5),
 	}
 }
 

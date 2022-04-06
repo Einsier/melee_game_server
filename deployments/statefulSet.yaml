@@ -7,7 +7,7 @@ metadata:
     app: game-server
 spec:
   ports:
-    - port: 32003
+    - port: 32004
       targetPort: 8000
   selector:
     app: game-server

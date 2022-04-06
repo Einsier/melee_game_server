@@ -10,3 +10,6 @@ package configs
 const (
 	NormalGameRoomId = iota
 )
+
+var IsTest = false
+var ClientTcpPortForDeploy = ":8000"

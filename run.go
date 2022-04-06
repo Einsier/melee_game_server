@@ -22,9 +22,9 @@ import (
 
 //腾讯服务器地址:1.116.109.113
 var hallRpcPortFlag = flag.String("hallRpcPort", ":8000", "set the port of rpc in order to communicate with hall")
-var clientTcpAddrFlag = flag.String("clientAddr", "49.234.245.172:32004", "set the port of tcp in order to communicate with client")
+var clientTcpAddrFlag = flag.String("clientAddr", "1.116.109.113:8001", "set the port of tcp in order to communicate with client")
 var etcdAddrFlag = flag.String("etcdAddr", "42.192.200.194:2379", "set the address of etcd")
-var testFlag = flag.Bool("t", false, "if this is a local test")
+var testFlag = flag.Bool("t", false, "if this is a none-deploy test")
 var playerNumFlag = flag.Int("playerNum", 3, "configs the number of players in each game which must be same as the hall's config")
 
 func ParseFlags() {
@@ -32,8 +32,8 @@ func ParseFlags() {
 	if *testFlag {
 		//如果当前是本机测试
 		*hallRpcPortFlag = ":8000"
-		*clientTcpAddrFlag = "localhost:8001"
 		*etcdAddrFlag = "42.192.200.194:2379"
+		configs.IsTest = true
 	} else {
 		//如果当前是集群部署,查看自己的环境变量然后设置监听外网端口
 		hostname := os.Getenv("HOSTNAME")
@@ -62,5 +62,5 @@ func main() {
 	server.EtcdCli = server.NewEtcdCli()
 	server.GS.Run()
 	logger.Infof("开启game server:大厅服务器rpc端口[%s],客户端kcp地址[%s]\n", *hallRpcPortFlag, *clientTcpAddrFlag)
-	time.Sleep(100 * time.Minute)
+	time.Sleep(1000000 * time.Minute)
 }

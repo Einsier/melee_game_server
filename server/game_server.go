@@ -52,9 +52,16 @@ func (gs *GameServer) Run() {
 	}
 	gs.serveRpc(l)
 
-	s := strings.Split(gs.ClientAddr, ":")
+	clientTcpPort := ""
+	if configs.IsTest {
+		//如果是测试使用,从参数获取应该监听的端口
+		clientTcpPort = strings.Split(gs.ClientAddr, ":")[1]
+	} else {
+		//如果是集群部署,统一映射到8001端口
+		clientTcpPort = configs.ClientTcpPortForDeploy
+	}
 	//开启监听客户端的kcp服务
-	kcp.StartKCP("0.0.0.0:"+s[1], 16384, 16384)
+	kcp.StartKCP("0.0.0.0:"+clientTcpPort, 16384, 16384)
 	go gs.DispatchMail()
 }
 

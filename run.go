@@ -26,9 +26,11 @@ var clientTcpAddrFlag = flag.String("clientAddr", "1.116.109.113:8001", "set the
 var etcdAddrFlag = flag.String("etcdAddr", "42.192.200.194:2379", "set the address of etcd")
 var testFlag = flag.Bool("t", false, "if this is a none-deploy test")
 var playerNumFlag = flag.Int("playerNum", 3, "configs the number of players in each game which must be same as the hall's config")
+var showTcpMsg = flag.Bool("msg", false, "whether to display Tcp messages receive from clients/send to clients")
 
 func ParseFlags() {
 	flag.Parse()
+	configs.ShowTcpMsg = *showTcpMsg
 	if *testFlag {
 		//如果当前是本机测试
 		*hallRpcPortFlag = ":8000"

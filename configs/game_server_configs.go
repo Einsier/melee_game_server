@@ -13,3 +13,4 @@ const (
 
 var IsTest = false
 var ClientTcpPortForDeploy = ":8000"
+var ShowTcpMsg = false

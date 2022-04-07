@@ -18,13 +18,20 @@ func (gs *GameServer) CreateNormalGameRoom(req *hall.CreateNormalGameRequest, re
 	connectInfo, err := gs.grm.AddNormalGameRoom(req.PlayerInfo, req.GameId)
 	if err != nil {
 		resp.Ok = false
+		logger.Errorf("启动gameId:%s 房间失败", req.GameId)
 		return err
 	}
 
 	connectInfo.ClientAddr = gs.ClientAddr
 	resp.ConnectionInfo = connectInfo
 	resp.Ok = true
-	logger.Testf("分配%d房间号给hall", resp.ConnectionInfo.Id)
+	logger.Infof("分配%d房间号给hall", resp.ConnectionInfo.Id)
+	err = gs.grm.StartNormalGame(resp.ConnectionInfo.Id)
+	if err != nil {
+		resp.Ok = false
+		logger.Errorf("%d房间开启游戏失败", resp.ConnectionInfo.Id)
+		return err
+	}
 	return nil
 }
 

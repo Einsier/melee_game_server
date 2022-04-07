@@ -12,4 +12,4 @@ const (
 )
 
 var IsTest = false
-var ClientTcpPortForDeploy = ":8000"
+var ClientTcpPortForDeploy = ":8001"

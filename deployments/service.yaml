@@ -8,8 +8,8 @@ metadata:
     service.kubernetes.io/qcloud-share-existed-lb: "true"
 spec:
   ports:
-    - port: 32004
-      targetPort: 32004
+    - port: 33000
+      targetPort: 8001
       protocol: TCP
   selector:
     app: game-server

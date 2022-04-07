@@ -18,7 +18,7 @@ kind: StatefulSet
 metadata:
   name: game-server
   annotations:
-    service-per-pod-ports: "33000:32004"
+    service-per-pod-ports: "33000:8001"
 spec:
   selector:
     matchLabels:
@@ -38,6 +38,6 @@ spec:
           ports:
             - containerPort: 8000
               protocol: TCP
-            - containerPort: 32004
+            - containerPort: 8001
               protocol: TCP
       restartPolicy: Always

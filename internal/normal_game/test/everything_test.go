@@ -3,8 +3,8 @@ package test
 import (
 	"fmt"
 	configs "melee_game_server/configs/normal_game_type_configs"
+	gt "melee_game_server/framework/entity"
 	gr "melee_game_server/internal/normal_game/game_room"
-	gt "melee_game_server/internal/normal_game/game_type"
 	"sync"
 	"testing"
 	"time"

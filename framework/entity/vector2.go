@@ -1,4 +1,4 @@
-package game_type
+package entity
 
 import (
 	"fmt"

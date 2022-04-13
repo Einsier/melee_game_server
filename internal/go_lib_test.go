@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
+	"melee_game_server/framework/entity"
 	gt "melee_game_server/internal/normal_game/game_type"
 	"strconv"
 	"strings"
@@ -28,32 +29,32 @@ func TestCountBulletId(t *testing.T) {
 }
 
 //getVector 例如把(0,0)拆成满足x = (-1,0) + (2,0) + (-1,0) = (0,0)这样的x集合,y同理,用于测试
-func getVector(times int) (x []gt.Vector2, y []gt.Vector2) {
+func getVector(times int) (x []entity.Vector2, y []entity.Vector2) {
 	for i := 0; i < times; i++ {
 		xRand := rand.Float64()
 		yRand := rand.Float64()
 		xMove := xRand - float64(int64(xRand))
 		yMove := yRand - float64(int64(yRand))
-		x = append(x, gt.Vector2{X: xMove, Y: 0})
-		y = append(y, gt.Vector2{X: 0, Y: yMove})
+		x = append(x, entity.Vector2{X: xMove, Y: 0})
+		y = append(y, entity.Vector2{X: 0, Y: yMove})
 	}
 	for i := 0; i < times; i++ {
-		x = append(x, gt.Vector2{X: -x[i].X, Y: 0})
-		y = append(y, gt.Vector2{X: 0, Y: -y[i].Y})
+		x = append(x, entity.Vector2{X: -x[i].X, Y: 0})
+		y = append(y, entity.Vector2{X: 0, Y: -y[i].Y})
 	}
 	return
 }
 
 func TestGetVector(t *testing.T) {
 	x, y := getVector(100000)
-	v := gt.NewVector2(0, 0)
+	v := entity.NewVector2(0, 0)
 	for _, testV := range x {
 		v.Add(testV)
 	}
 	for _, testV := range y {
 		v.Add(testV)
 	}
-	if !gt.VectorEqual(v, gt.Vector2Zero) {
+	if !entity.VectorEqual(v, entity.Vector2Zero) {
 		log.Fatalf("fail! result:%v", v)
 	}
 	fmt.Printf("result:%v", v)

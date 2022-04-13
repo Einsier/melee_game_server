@@ -8,6 +8,6 @@ package normal_game_type_configs
  */
 
 const (
-	NormalGameMapWidth  = 100 //地图宽度
-	NormalGameMapHeight = 100 //地图高度
+	MapWidth  = 160 //地图宽度
+	MapHeight = 100 //地图高度
 )

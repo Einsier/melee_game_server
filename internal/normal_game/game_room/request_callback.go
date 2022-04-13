@@ -3,6 +3,7 @@ package game_room
 import (
 	pb "melee_game_server/api/client/proto"
 	configs "melee_game_server/configs/normal_game_type_configs"
+	"melee_game_server/framework/entity"
 	"melee_game_server/framework/game_net/api"
 	"melee_game_server/internal/normal_game/codec"
 	gt "melee_game_server/internal/normal_game/game_type"
@@ -110,7 +111,7 @@ func HeroPositionReportRequestCallback(msg *api.Mail, room *NormalGameRoom) {
 		X := req.Position.X
 		Y := req.Position.Y
 
-		room.heroManager.UpdateHeroPositionInfo(hid, gt.NewVector2(float64(X), float64(Y)), req.Time, req.HeroMovementType)
+		room.heroManager.UpdateHeroPositionInfo(hid, entity.NewVector2(float64(X), float64(Y)), req.Time, req.HeroMovementType)
 		broadHeroes := room.heroManager.GetHeroesNearby(hid)
 		broad := codec.Encode(&pb.HeroPositionReportBroadcast{
 			HeroId:       hid,
@@ -126,7 +127,7 @@ func HeroMovementChangeRequestCallback(msg *api.Mail, room *NormalGameRoom) {
 	req := msg.Msg.Request.HeroMovementChangeRequest
 	hid := req.HeroId
 	if room.Status == configs.NormalGameStartStatus {
-		position := gt.NewVector2(float64(req.Position.X), float64(req.Position.Y))
+		position := entity.NewVector2(float64(req.Position.X), float64(req.Position.Y))
 		room.heroManager.UpdateHeroPositionInfo(hid, position, req.Time, req.HeroMovementType)
 		broadHeroes := room.heroManager.GetHeroesNearby(hid)
 		broad := codec.Encode(&pb.HeroMovementChangeBroadcast{
@@ -145,8 +146,8 @@ func HeroBulletLaunchRequestCallback(msg *api.Mail, room *NormalGameRoom) {
 	req := msg.Msg.Request.HeroBulletLaunchRequest
 	hid := req.HeroId
 	if room.Status == configs.NormalGameStartStatus {
-		position := gt.Vector2{X: float64(req.Position.X), Y: float64(req.Position.Y)}
-		direction := gt.Vector2{X: float64(req.Direction.X), Y: float64(req.Direction.Y)}
+		position := entity.Vector2{X: float64(req.Position.X), Y: float64(req.Position.Y)}
+		direction := entity.Vector2{X: float64(req.Direction.X), Y: float64(req.Direction.Y)}
 		bullet := gt.NewBullet(hid, req.BulletIdByHero, req.LaunchTime, position, direction)
 		room.GetBulletsManager().AddBullets(bullet)
 		broadHeroes := room.heroManager.GetHeroesNearby(hid)

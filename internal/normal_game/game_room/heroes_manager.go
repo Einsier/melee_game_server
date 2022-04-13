@@ -3,6 +3,7 @@ package game_room
 import (
 	pb "melee_game_server/api/client/proto"
 	configs "melee_game_server/configs/normal_game_type_configs"
+	"melee_game_server/framework/entity"
 	gt "melee_game_server/internal/normal_game/game_type"
 	"sync"
 )
@@ -25,7 +26,7 @@ type HeroesManager struct {
 }
 
 //HeroInitPosition 英雄的初始位置,key为heroId,value为英雄的初始位置 todo:随机生成英雄位置
-var HeroInitPosition = map[int32]gt.Vector2{
+var HeroInitPosition = map[int32]entity.Vector2{
 	int32(1):  {X: 0, Y: 0},
 	int32(2):  {X: 0, Y: 0},
 	int32(3):  {X: 0, Y: 0},
@@ -76,13 +77,13 @@ func (hm *HeroesManager) GetHero(heroId int32) *gt.Hero {
 }
 
 //GetHeroPosition 获取heroId的英雄的当前位置
-func (hm *HeroesManager) GetHeroPosition(heroId int32) gt.Vector2 {
+func (hm *HeroesManager) GetHeroPosition(heroId int32) entity.Vector2 {
 	/*hm.lock.RLock()
 	defer hm.lock.RUnlock()*/
 	return hm.heroes[heroId].GetPosition()
 }
 
-func (hm *HeroesManager) GetHeroDirection(heroId int32) gt.Vector2 {
+func (hm *HeroesManager) GetHeroDirection(heroId int32) entity.Vector2 {
 	return hm.heroes[heroId].GetMoveStatus()
 }
 
@@ -92,19 +93,19 @@ func (hm *HeroesManager) DeleteHero(h *gt.Hero) {
 }
 
 //UpdateHeroPositionInfo 更改hero的position,updateTime,moveStatus三个属性
-func (hm *HeroesManager) UpdateHeroPositionInfo(heroId int32, position gt.Vector2, updateTime int64, movementType pb.HeroMovementType) {
-	var t gt.Vector2
+func (hm *HeroesManager) UpdateHeroPositionInfo(heroId int32, position entity.Vector2, updateTime int64, movementType pb.HeroMovementType) {
+	var t entity.Vector2
 	switch movementType {
 	case pb.HeroMovementType_HeroMoveDownType:
-		t = gt.Vector2Down
+		t = entity.Vector2Down
 	case pb.HeroMovementType_HeroMoveUpType:
-		t = gt.Vector2Up
+		t = entity.Vector2Up
 	case pb.HeroMovementType_HeroMoveRightType:
-		t = gt.Vector2Right
+		t = entity.Vector2Right
 	case pb.HeroMovementType_HeroMoveLeftType:
-		t = gt.Vector2Left
+		t = entity.Vector2Left
 	default:
-		t = gt.Vector2Zero
+		t = entity.Vector2Zero
 	}
 	hm.heroes[heroId].SetPositionInfo(position, t, updateTime)
 }

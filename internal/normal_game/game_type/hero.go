@@ -2,6 +2,7 @@ package game_type
 
 import (
 	configs "melee_game_server/configs/normal_game_type_configs"
+	"melee_game_server/framework/entity"
 	"melee_game_server/plugins/logger"
 	"melee_game_server/utils"
 	"sync"
@@ -16,23 +17,23 @@ import (
  */
 
 type Hero struct {
-	Id           int32        //英雄在本局游戏中的id
-	position     Vector2      //当前位置
-	moveStatus   Vector2      //运动状态,相当于枚举,静止->Vector2Zero,向上->Vector2Up,向下->Vector2Down,向左->Vector2Left,向右->Vector2Right
-	status       int32        //当前状态,枚举类型见normal_game_type_configs/hero_configs
-	Health       int32        //当前血量
-	updateTime   int64        //发出当前动作的前端发过来的时间
-	healthLock   sync.RWMutex //血量锁
-	movementLock sync.RWMutex //更改moveType以及position的锁
-	statusLock   sync.RWMutex //更改status的锁
+	Id           int32          //英雄在本局游戏中的id
+	position     entity.Vector2 //当前位置
+	moveStatus   entity.Vector2 //运动状态,相当于枚举,静止->Vector2Zero,向上->Vector2Up,向下->Vector2Down,向左->Vector2Left,向右->Vector2Right
+	status       int32          //当前状态,枚举类型见normal_game_type_configs/hero_configs
+	Health       int32          //当前血量
+	updateTime   int64          //发出当前动作的前端发过来的时间
+	healthLock   sync.RWMutex   //血量锁
+	movementLock sync.RWMutex   //更改moveType以及position的锁
+	statusLock   sync.RWMutex   //更改status的锁
 }
 
 //NewHero 通过赋予id和位置创造一个角色
-func NewHero(id int32, position Vector2) *Hero {
+func NewHero(id int32, position entity.Vector2) *Hero {
 	return &Hero{
 		Id:         id,
 		position:   position,
-		moveStatus: Vector2Zero,
+		moveStatus: entity.Vector2Zero,
 		status:     configs.HeroAlive,
 		Health:     configs.HeroInitHealth,
 		updateTime: time.Now().UnixNano(),
@@ -40,7 +41,7 @@ func NewHero(id int32, position Vector2) *Hero {
 }
 
 //GetPosition 获取当前英雄的position
-func (h *Hero) GetPosition() Vector2 {
+func (h *Hero) GetPosition() entity.Vector2 {
 	h.movementLock.RLock()
 	defer h.movementLock.RUnlock()
 
@@ -53,7 +54,7 @@ func (h *Hero) GetPosition() Vector2 {
 }
 
 //GetMoveStatus 获取当前英雄的运动状态
-func (h *Hero) GetMoveStatus() Vector2 {
+func (h *Hero) GetMoveStatus() entity.Vector2 {
 	h.movementLock.RLock()
 	defer h.movementLock.RUnlock()
 	return h.moveStatus
@@ -115,7 +116,7 @@ func (h *Hero) GetStatus() int32 {
 }
 
 //SetPositionInfo 互斥的更改当前的位置position,当前的运动状态moveStatus,更新时间t,注意这个时间应该是客户端生成的
-func (h *Hero) SetPositionInfo(position Vector2, moveStatus Vector2, t int64) {
+func (h *Hero) SetPositionInfo(position entity.Vector2, moveStatus entity.Vector2, t int64) {
 	h.movementLock.Lock()
 	defer h.movementLock.Unlock()
 	h.position = position
@@ -124,7 +125,7 @@ func (h *Hero) SetPositionInfo(position Vector2, moveStatus Vector2, t int64) {
 }
 
 //SetMoveStatus 互斥更改moveType
-func (h *Hero) SetMoveStatus(moveStatus Vector2) {
+func (h *Hero) SetMoveStatus(moveStatus entity.Vector2) {
 	h.movementLock.Lock()
 	defer h.movementLock.Unlock()
 	h.moveStatus = moveStatus

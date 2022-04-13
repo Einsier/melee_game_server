@@ -1,6 +1,7 @@
 package game_room
 
 import (
+	"melee_game_server/framework/entity"
 	gt "melee_game_server/internal/normal_game/game_type"
 	"melee_game_server/plugins/logger"
 	"sync"
@@ -48,7 +49,7 @@ func (bm *BulletsManager) DeleteBullets(bid int64) {
 	bm.bullets.Delete(bid)
 }
 
-func (bm *BulletsManager) CheckBulletHitHero(bid int64, heroPosition gt.Vector2) bool {
+func (bm *BulletsManager) CheckBulletHitHero(bid int64, heroPosition entity.Vector2) bool {
 	b, ok := bm.bullets.Load(bid)
 	if !ok {
 		return false

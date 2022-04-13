@@ -3,6 +3,7 @@ package game_room
 import (
 	pb "melee_game_server/api/client/proto"
 	configs "melee_game_server/configs/normal_game_type_configs"
+	"melee_game_server/framework/entity"
 	"melee_game_server/internal/normal_game/codec"
 	gt "melee_game_server/internal/normal_game/game_type"
 	"melee_game_server/plugins/logger"
@@ -55,14 +56,14 @@ func CleanOverTimeBulletTimeEventCallback(room *NormalGameRoom) {
 func RefreshPropsTimeEventCallback(room *NormalGameRoom) {
 	pm := room.GetPropsManager()
 	for i := 0; i < configs.PropRefreshNumPerTime; i++ {
-		X1 := utils.RandomFloat64(0, configs.NormalGameMapWidth)
-		X2 := utils.RandomFloat64(0, configs.NormalGameMapWidth)
-		Y1 := utils.RandomFloat64(0, configs.NormalGameMapHeight)
-		Y2 := utils.RandomFloat64(0, configs.NormalGameMapHeight)
+		X1 := utils.RandomFloat64(0, configs.MapWidth)
+		X2 := utils.RandomFloat64(0, configs.MapWidth)
+		Y1 := utils.RandomFloat64(0, configs.MapHeight)
+		Y2 := utils.RandomFloat64(0, configs.MapHeight)
 		id1 := pm.GetId()
 		id2 := pm.GetId()
-		p1 := gt.NewProp(id1, pb.PropType_StrawberryType, gt.NewVector2(X1, Y1))
-		p2 := gt.NewProp(id2, pb.PropType_BulletPocketType, gt.NewVector2(X2, Y2))
+		p1 := gt.NewProp(id1, pb.PropType_StrawberryType, entity.NewVector2(X1, Y1))
+		p2 := gt.NewProp(id2, pb.PropType_BulletPocketType, entity.NewVector2(X2, Y2))
 		pm.AddProp(p1)
 		pm.AddProp(p2)
 

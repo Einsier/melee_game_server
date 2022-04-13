@@ -1,6 +1,9 @@
 package game_type
 
-import "melee_game_server/api/client/proto"
+import (
+	"melee_game_server/api/client/proto"
+	"melee_game_server/framework/entity"
+)
 
 /**
 *@Author Sly
@@ -12,10 +15,10 @@ import "melee_game_server/api/client/proto"
 type Prop struct {
 	Id       int32
 	PropType proto.PropType
-	Position Vector2
+	Position entity.Vector2
 }
 
-func NewProp(id int32, propType proto.PropType, position Vector2) *Prop {
+func NewProp(id int32, propType proto.PropType, position entity.Vector2) *Prop {
 	return &Prop{
 		Id:       id,
 		PropType: propType,

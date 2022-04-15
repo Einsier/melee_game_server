@@ -3,6 +3,7 @@ package entity
 import (
 	"fmt"
 	"melee_game_server/utils"
+	"strconv"
 )
 
 /**
@@ -25,7 +26,7 @@ func NewVector2(x, y float64) Vector2 {
 var (
 	Vector2Up    = Vector2{X: 0, Y: 1}
 	Vector2Down  = Vector2{X: 0, Y: -1}
-	Vector2Left  = Vector2{X: 0, Y: -1}
+	Vector2Left  = Vector2{X: -1, Y: 0}
 	Vector2Right = Vector2{X: 1, Y: 0}
 	Vector2Zero  = Vector2{X: 0, Y: 0}
 	Vector2Unit  = Vector2{X: 1, Y: 1}
@@ -57,8 +58,9 @@ func (v *Vector2) DivideScalar(s float64) Vector2 {
 	return NewVector2(v.X/s, v.Y/s)
 }
 
+//String 注意为了适应二维数组,使用(Y,X)这种方式
 func (v *Vector2) String() string {
-	return fmt.Sprintf("%v:%v", v.X, v.Y)
+	return fmt.Sprintf("(%s , %s)", strconv.FormatFloat(v.Y, 'f', 1, 64), strconv.FormatFloat(v.X, 'f', 1, 64))
 }
 
 //VectorEqual 两个Vector2是不是近似的相等...有时go浮点数运算会有小误差,所以只要高位足够相等即可

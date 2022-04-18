@@ -2,7 +2,7 @@ package aoi
 
 import (
 	"melee_game_server/framework/entity"
-	"melee_game_server/plugins/aoi/object"
+	"melee_game_server/internal/normal_game/aoi/object"
 	"melee_game_server/plugins/logger"
 	"time"
 )
@@ -25,7 +25,7 @@ type Hero struct {
 	position   entity.Vector2 //英雄当前位置
 	updateTime time.Time      //上次位置更新时间
 	at         *object.Grid   //当前处于哪个格子
-	speed      float64
+	speed      float32
 	aoi        *AOI
 	View       map[int32]struct{} //能看到的英雄
 }
@@ -35,7 +35,7 @@ func (h *Hero) VisibleHeroes() []int32 {
 }
 
 //NewHero 初始化英雄,需要初始化英雄当前所在的格子,所以需要将aoi传入
-func NewHero(id int32, position, direction entity.Vector2, speed float64, aoi *AOI) *Hero {
+func NewHero(id int32, position, direction entity.Vector2, speed float32, aoi *AOI) *Hero {
 	var grid *object.Grid
 	if grid = aoi.GetGridByPos(&position); grid == nil {
 		return nil
@@ -72,15 +72,22 @@ func (h *Hero) UpdateMovement(info *HeroMoveMsg) {
 		info.Position = entity.Vector2{
 			//运算逻辑:
 			//新位置X= 旧位置X	+ 更新间隔(单位ms)	*英雄移动速度 * 英雄移动方向的X(取值为1/0/-1)
-			X: h.position.X + float64(timeSpace)*h.speed*info.Direction.X,
-			Y: h.position.Y + float64(timeSpace)*h.speed*info.Direction.Y,
+			X: h.position.X + float32(timeSpace)*h.speed*info.Direction.X,
+			Y: h.position.Y + float32(timeSpace)*h.speed*info.Direction.Y,
+		}
+	} else if info.Position == entity.Vector2Zero {
+		//todo:测试用,只改变方向,让服务器计算当前的位置(本来该由前端做,服务器校验)
+		info.Position = entity.Vector2{
+			//运算逻辑:
+			//新位置X= 旧位置X	+ 更新间隔(单位ms)	*英雄移动速度 * 英雄移动方向的X(取值为1/0/-1)
+			X: h.position.X + float32(info.Time.Sub(h.updateTime).Milliseconds())*h.speed*h.direction.X,
+			Y: h.position.Y + float32(info.Time.Sub(h.updateTime).Milliseconds())*h.speed*h.direction.Y,
 		}
 	}
 
 	//更新位置
 	if to := h.aoi.GetGridByPos(&info.Position); to != nil {
 		//如果更新的位置是正确的,那么更新位置,否则判断玩家位置不合法,让玩家位于上次更新的位置
-		logger.Infof("[hero:%d]now at:%+v,from grid:[%d][%d]->[%d][%d]", h.Id, &info.Position, h.at.YIdx, h.at.XIdx, to.YIdx, to.XIdx)
 		var joinGrid, leaveGrid []*object.Grid
 		refreshAll := func() {
 			leaveGrid = []*object.Grid{
@@ -109,6 +116,7 @@ func (h *Hero) UpdateMovement(info *HeroMoveMsg) {
 			//如果离开了at,那么应该:
 			//1.把玩家从at中删除
 			//2.把玩家加入到to中
+			logger.Infof("[hero:%d]position:%+v->%+v,grid:[%d][%d]->[%d][%d]", h.Id, &h.position, &info.Position, h.at.YIdx, h.at.XIdx, to.YIdx, to.XIdx)
 			delete(h.at.Objs, h.Id)
 			to.Objs[h.Id] = struct{}{}
 			//3.判断to和at的关系,有可能有以下情况:
@@ -183,7 +191,7 @@ func (h *Hero) UpdateMovement(info *HeroMoveMsg) {
 			for i := 0; i < len(leaveGrid); i++ {
 				if leaveGrid[i] != nil {
 					//这里需要判断是否越界
-					for id, _ := range leaveGrid[i].Objs {
+					for id := range leaveGrid[i].Objs {
 						//将本英雄从leaveGrid中的英雄的可见英雄集合中删除
 						delete(h.aoi.Heroes[id].View, h.Id)
 						//将leaveGrid中的英雄从本英雄的可见英雄集合中删除
@@ -193,7 +201,7 @@ func (h *Hero) UpdateMovement(info *HeroMoveMsg) {
 				}
 				if joinGrid[i] != nil {
 					//这里需要判断是否越界
-					for id, _ := range joinGrid[i].Objs {
+					for id := range joinGrid[i].Objs {
 						//将本英雄加入到joinGrid中的英雄的可见英雄集合中
 						h.aoi.Heroes[id].View[h.Id] = struct{}{}
 						//将joinGrid中的英雄的可见英雄中加入本英雄
@@ -207,5 +215,5 @@ func (h *Hero) UpdateMovement(info *HeroMoveMsg) {
 		h.at = to
 		h.direction = info.Direction
 	}
-	h.updateTime = time.Now()
+	h.updateTime = info.Time
 }

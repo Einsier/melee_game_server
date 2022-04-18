@@ -23,7 +23,7 @@ const (
 	HeroColliderOffsetY = 0.0       //Ruby的碰撞偏移Y
 )
 
-const HeroMoveSpeed = 0.000000002 //英雄移动速度,单位为m/ns,即2m/s
+const HeroMoveSpeed = 0.008 //英雄移动速度,单位为m/ms,即8m/s
 
 //Player的状态
 const (

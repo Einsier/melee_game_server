@@ -111,7 +111,7 @@ func HeroPositionReportRequestCallback(msg *api.Mail, room *NormalGameRoom) {
 		X := req.Position.X
 		Y := req.Position.Y
 
-		room.heroManager.UpdateHeroPositionInfo(hid, entity.NewVector2(float64(X), float64(Y)), req.Time, req.HeroMovementType)
+		room.heroManager.UpdateHeroPositionInfo(hid, entity.NewVector2(X, Y), req.Time, req.HeroMovementType)
 		broadHeroes := room.heroManager.GetHeroesNearby(hid)
 		broad := codec.Encode(&pb.HeroPositionReportBroadcast{
 			HeroId:       hid,
@@ -127,7 +127,8 @@ func HeroMovementChangeRequestCallback(msg *api.Mail, room *NormalGameRoom) {
 	req := msg.Msg.Request.HeroMovementChangeRequest
 	hid := req.HeroId
 	if room.Status == configs.NormalGameStartStatus {
-		position := entity.NewVector2(float64(req.Position.X), float64(req.Position.Y))
+		logger.Testf("heroId:%d,time:%v,position:%v", req.HeroId, req.Time, req.Position)
+		position := entity.NewVector2(req.Position.X, req.Position.Y)
 		room.heroManager.UpdateHeroPositionInfo(hid, position, req.Time, req.HeroMovementType)
 		broadHeroes := room.heroManager.GetHeroesNearby(hid)
 		broad := codec.Encode(&pb.HeroMovementChangeBroadcast{
@@ -146,8 +147,8 @@ func HeroBulletLaunchRequestCallback(msg *api.Mail, room *NormalGameRoom) {
 	req := msg.Msg.Request.HeroBulletLaunchRequest
 	hid := req.HeroId
 	if room.Status == configs.NormalGameStartStatus {
-		position := entity.Vector2{X: float64(req.Position.X), Y: float64(req.Position.Y)}
-		direction := entity.Vector2{X: float64(req.Direction.X), Y: float64(req.Direction.Y)}
+		position := entity.Vector2{X: req.Position.X, Y: req.Position.Y}
+		direction := entity.Vector2{X: req.Direction.X, Y: req.Direction.Y}
 		bullet := gt.NewBullet(hid, req.BulletIdByHero, req.LaunchTime, position, direction)
 		room.GetBulletsManager().AddBullets(bullet)
 		broadHeroes := room.heroManager.GetHeroesNearby(hid)

@@ -1,8 +1,11 @@
 package aoi
 
 import (
+	"melee_game_server/api/client/proto"
 	"melee_game_server/framework/entity"
-	"melee_game_server/plugins/aoi/object"
+	"melee_game_server/internal/normal_game/aoi/object"
+	"melee_game_server/internal/normal_game/codec"
+	"melee_game_server/internal/normal_game/game_net"
 	"melee_game_server/plugins/logger"
 	"time"
 )
@@ -29,7 +32,7 @@ type MapInfo struct {
 
 type HeroInfo struct {
 	HeroNum        int
-	Speed          float64 //每ms移动多少m
+	Speed          float32 //每ms移动多少m
 	UpdateDuration time.Duration
 
 	Heroes map[int32]*Hero
@@ -46,6 +49,7 @@ type AOI struct {
 	*MapInfo
 	*HeroInfo
 	*MsgChan
+	gn *game_net.NormalGameNetServer
 }
 
 //GetGridByPos 获取当前位置应该属于哪个grid,并从中取出grid
@@ -75,7 +79,7 @@ func (mp *MapInfo) checkPositionLegal(pos *entity.Vector2) bool {
 }
 
 //NewAOI 创建一个AOI模块
-func NewAOI(heroesInitInfo *HeroesInitInfo, mx, my, gx, gy int, updateDuration time.Duration) *AOI {
+func NewAOI(heroesInitInfo *HeroesInitInfo, mx, my, gx, gy int, updateDuration time.Duration, gn *game_net.NormalGameNetServer) *AOI {
 	if mx < 0 || my < 0 || gx < 0 || gy < 0 {
 		return nil
 	}
@@ -124,9 +128,10 @@ func NewAOI(heroesInitInfo *HeroesInitInfo, mx, my, gx, gy int, updateDuration t
 	aoi.HeroInfo = heroInfo
 
 	aoi.MsgChan = new(MsgChan)
-	aoi.Quit = make(chan *HeroQuitMsg)
-	aoi.Move = make(chan *HeroMoveMsg)
+	aoi.Quit = make(chan *HeroQuitMsg, 512)
+	aoi.Move = make(chan *HeroMoveMsg, 65536)
 	aoi.Finish = make(chan struct{})
+	aoi.gn = gn
 	return aoi
 }
 
@@ -140,20 +145,41 @@ func (aoi *AOI) UpdateHeroPosition(info *HeroMoveMsg) {
 	hero.UpdateMovement(info)
 }
 
-//Work aoi模块开始工作,每秒12帧的发送位置信息
+//Work aoi模块开始工作,每秒12帧的发送位置信息,注意一定是初始化了所有玩家的net.Conn才可以执行
 func (aoi *AOI) Work() {
 	ticker := time.NewTicker(aoi.UpdateDuration)
-	var quitMsg *HeroQuitMsg
-	var moveMsg *HeroMoveMsg
-	var hero *Hero
-	var ok bool
 	go func() {
+		var quitMsg *HeroQuitMsg
+		var moveMsg *HeroMoveMsg
+		var hero *Hero
+		var ok bool
 		for {
 			select {
 			case <-ticker.C:
-				//定时更新英雄的位置信息,并且广播给其它的玩家
+				//因为发送的时候不会改变每个玩家的位置,所以拷贝一手全体玩家的当前位置,用于发送
+				m := make(map[int32]*proto.HeroMovementChangeBroadcast, len(aoi.Heroes))
 				for _, hero = range aoi.Heroes {
+					//定时更新英雄的位置信息,更新hero的位置信息
 					hero.UpdateMovement(nil)
+					//把当前英雄的位置信息放到m中
+					m[hero.Id] = &proto.HeroMovementChangeBroadcast{
+						HeroId:           hero.Id,
+						HeroMovementType: entity.V2toToHeroMovementType[hero.direction],
+						HeroPosition:     hero.position.ToProto(),
+						Time:             hero.updateTime.UnixMilli(),
+					}
+				}
+				for _, me := range aoi.Heroes {
+					//将当前hero视野中的全部英雄的topMsg的指针放到view中,把view传给网络模块进行发送
+					meMap := make(map[int32]*proto.HeroMovementChangeBroadcast)
+					for otherId := range hero.View {
+						if meMap[otherId] = m[otherId]; meMap[otherId] == nil {
+							panic("!!!!!")
+						}
+					}
+					//logger.Infof("hero:%d 视野中的玩家有:%v",hero.Id,view)
+
+					aoi.gn.SendByHeroId([]int32{me.Id}, codec.EncodeUnicast(&proto.HeroFrameSyncUnicast{Movement: meMap}))
 				}
 			case moveMsg = <-aoi.Move:
 				hero, ok = aoi.Heroes[moveMsg.Id]
@@ -164,8 +190,12 @@ func (aoi *AOI) Work() {
 					hero.UpdateMovement(moveMsg)
 				}
 			case quitMsg = <-aoi.Quit:
-				//英雄退出
-				delete(aoi.Heroes, int32(*quitMsg))
+				quitHeroId := quitMsg.id
+				//英雄退出,从map中删除英雄,并且从能看到被删玩家的玩家的View中删除被删玩家
+				for otherHeroId := range aoi.Heroes[quitHeroId].View {
+					delete(aoi.Heroes[otherHeroId].View, quitHeroId)
+				}
+				delete(aoi.Heroes, quitHeroId)
 			case <-aoi.Finish:
 				//结束
 				logger.Infof("aoi模块结束工作")
@@ -180,4 +210,12 @@ func (aoi *AOI) Work() {
 func (aoi *AOI) Stop() {
 	aoi.Ticker.Stop()
 	close(aoi.Finish)
+}
+
+func (aoi *AOI) PutMove(msg *HeroMoveMsg) {
+	aoi.Move <- msg
+}
+
+func (aoi *AOI) RemoveHero(id int32) {
+	aoi.Quit <- &HeroQuitMsg{id: id}
 }

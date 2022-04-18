@@ -12,7 +12,14 @@ import (
 *@Description:
  */
 
-type HeroQuitMsg int32
+type HeroQuitMsg struct {
+	id int32
+}
+
+//SingleHeroInitInfo 用于初始化aoi模块中的每个英雄
+type SingleHeroInitInfo struct {
+	*HeroMoveMsg
+}
 
 //HeroMoveMsg 表示英雄的当前状态
 type HeroMoveMsg struct {
@@ -24,6 +31,6 @@ type HeroMoveMsg struct {
 
 //HeroesInitInfo 用于初始化
 type HeroesInitInfo struct {
-	Speed  float64 //每ms走多少
+	Speed  float32 //每ms走多少
 	heroes []*HeroMoveMsg
 }

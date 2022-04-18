@@ -33,7 +33,7 @@ enum ResponseCode{
 
 enum UnicastCode{
     //unicast
-    Temp                                = 0;
+    HeroFrameSyncUnicastCode            = 0;
 }
 
 enum BroadcastCode{

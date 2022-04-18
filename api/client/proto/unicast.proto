@@ -2,7 +2,13 @@ syntax = "proto3";
 package proto;
 option go_package = ".;proto";
 import "consts.proto";
+import "broadcast.proto";
 
 message Unicast{
     UnicastCode               unicastCode                 = 1;
+    HeroFrameSyncUnicast      heroFrameSyncUnicast        = 2;
+}
+
+message HeroFrameSyncUnicast{
+    map<int32,HeroMovementChangeBroadcast> movement = 1;    //当前视野内的玩家的运动状态+当前位置+服务器发送包的时间
 }

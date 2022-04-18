@@ -186,3 +186,20 @@ func EncodeRequest(msg interface{}) *proto.TopMessage {
 	}
 	return nil
 }
+
+func EncodeUnicast(msg interface{}) *proto.TopMessage {
+	topMsg := new(proto.TopMessage)
+	switch msg.(type) {
+	case *proto.HeroFrameSyncUnicast:
+		uni := proto.Unicast{
+			UnicastCode:          proto.UnicastCode_HeroFrameSyncUnicastCode,
+			HeroFrameSyncUnicast: msg.(*proto.HeroFrameSyncUnicast),
+		}
+		topMsg.TopMessageType = proto.TopMessageType_UnicastType
+		topMsg.Unicast = &uni
+		return topMsg
+	default:
+		logger.TestErrf("EncodeUnicast:收到了错误的译码请求,%T不是可正确译码的类型", msg)
+		return nil
+	}
+}

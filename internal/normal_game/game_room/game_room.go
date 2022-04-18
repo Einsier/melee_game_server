@@ -6,6 +6,7 @@ import (
 	configs "melee_game_server/configs/normal_game_type_configs"
 	"melee_game_server/framework/game_net/api"
 	"melee_game_server/framework/game_room"
+	"melee_game_server/internal/normal_game/aoi"
 	"melee_game_server/internal/normal_game/codec"
 	gn "melee_game_server/internal/normal_game/game_net"
 	gt "melee_game_server/internal/normal_game/game_type"
@@ -42,6 +43,7 @@ type NormalGameRoom struct {
 	requestController   *RequestController
 	timeEventController *TimeEventController
 	honorManager        *HonorManager
+	aoi                 *aoi.AOI
 }
 
 func (room *NormalGameRoom) GetHeroesManager() *HeroesManager {
@@ -98,9 +100,9 @@ func (room *NormalGameRoom) Start() {
 	go room.requestController.Work2(room)
 	<-room.Prepare
 	logger.Infof("room:%d 所有玩家准备就绪,开始游戏", room.Id)
-	logger.Testf("room:%d 所有玩家准备就绪,开始游戏", room.Id)
 	room.StartTime = time.Now()
 	//代码执行到这里,所有的玩家都已经准备好
+	//room.aoi = aoi.NewAOI()
 	time.Sleep(20 * time.Millisecond)                                          //等待最后一个分配heroId的包到达
 	room.netServer.SendToAllPlayerConn(room.GetNormalGameStartBroadcastInfo()) //发消息通知所有的玩家游戏开始
 	room.Status = configs.NormalGameStartStatus
@@ -115,8 +117,8 @@ func (room *NormalGameRoom) Start() {
 	room.GetTimeEventController().Destroy()
 	room.Status = configs.NormalGameGameDestroyingStatus
 	room.EndTime = time.Now()
-	logger.Info("room %d 所有玩家已经离开,准备进行清理工作", room.Id)
-	logger.Test("room %d 所有玩家已经离开,准备进行清理工作", room.Id)
+	logger.Infof("room %d 所有玩家已经离开,准备进行清理工作", room.Id)
+	logger.Testf("room %d 所有玩家已经离开,准备进行清理工作", room.Id)
 	//todo 清理工作/持久化数据给数据库等
 
 	close(room.over) //通知本game_room已经结束

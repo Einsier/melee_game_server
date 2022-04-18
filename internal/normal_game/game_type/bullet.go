@@ -43,13 +43,13 @@ func (b *Bullet) GetPosition(t int64) *entity.Vector2 {
 	if b.Direction.X != 0 {
 		return &entity.Vector2{
 			//运算逻辑:子弹初始位置x + 子弹发射方向的x(为1/-1) * 子弹速度 * 子弹飞行时间
-			X: b.CreatePosition.X + b.Direction.X*config.BulletSpeed*float64(duration),
+			X: b.CreatePosition.X + b.Direction.X*config.BulletSpeed*float32(duration),
 			Y: b.CreatePosition.Y,
 		}
 	}
 	return &entity.Vector2{
 		X: b.CreatePosition.X,
-		Y: b.CreatePosition.Y + b.Direction.Y*config.BulletSpeed*float64(duration),
+		Y: b.CreatePosition.Y + b.Direction.Y*config.BulletSpeed*float32(duration),
 	}
 }
 

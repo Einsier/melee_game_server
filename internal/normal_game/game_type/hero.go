@@ -47,9 +47,9 @@ func (h *Hero) GetPosition() entity.Vector2 {
 
 	ct := time.Now().UnixNano()
 	//运算逻辑: hero的客户端上次向服务器汇报的位置 + (当前运动状态(例如向上运动为(0,1)) * 上次汇报距离现在过了多长时间 * 英雄运动速度)
-	p := h.position.Add(h.moveStatus.MultiplyScalar(float64(h.updateTime-ct) * configs.HeroMoveSpeed))
-	utils.TransNaN(&p.X)
-	utils.TransNaN(&p.Y)
+	p := h.position.Add(h.moveStatus.MultiplyScalar(float32(h.updateTime-ct) * configs.HeroMoveSpeed))
+	//utils.TransNaN(&p.X)
+	//utils.TransNaN(&p.Y)
 	return p
 }
 

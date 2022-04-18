@@ -56,10 +56,10 @@ func CleanOverTimeBulletTimeEventCallback(room *NormalGameRoom) {
 func RefreshPropsTimeEventCallback(room *NormalGameRoom) {
 	pm := room.GetPropsManager()
 	for i := 0; i < configs.PropRefreshNumPerTime; i++ {
-		X1 := utils.RandomFloat64(0, configs.MapWidth)
-		X2 := utils.RandomFloat64(0, configs.MapWidth)
-		Y1 := utils.RandomFloat64(0, configs.MapHeight)
-		Y2 := utils.RandomFloat64(0, configs.MapHeight)
+		X1 := utils.RandomFloat32(0, configs.MapWidth)
+		X2 := utils.RandomFloat32(0, configs.MapWidth)
+		Y1 := utils.RandomFloat32(0, configs.MapHeight)
+		Y2 := utils.RandomFloat32(0, configs.MapHeight)
 		id1 := pm.GetId()
 		id2 := pm.GetId()
 		p1 := gt.NewProp(id1, pb.PropType_StrawberryType, entity.NewVector2(X1, Y1))

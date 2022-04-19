@@ -31,10 +31,10 @@ func TestCountBulletId(t *testing.T) {
 //getVector 例如把(0,0)拆成满足x = (-1,0) + (2,0) + (-1,0) = (0,0)这样的x集合,y同理,用于测试
 func getVector(times int) (x []entity.Vector2, y []entity.Vector2) {
 	for i := 0; i < times; i++ {
-		xRand := rand.Float64()
-		yRand := rand.Float64()
-		xMove := xRand - float64(int64(xRand))
-		yMove := yRand - float64(int64(yRand))
+		xRand := rand.Float32()
+		yRand := rand.Float32()
+		xMove := xRand - float32(int64(xRand))
+		yMove := yRand - float32(int64(yRand))
 		x = append(x, entity.Vector2{X: xMove, Y: 0})
 		y = append(y, entity.Vector2{X: 0, Y: yMove})
 	}

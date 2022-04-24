@@ -1,7 +1,10 @@
 package aoi
 
 import (
+	configs "melee_game_server/configs/normal_game_type_configs"
 	"melee_game_server/framework/entity"
+	"melee_game_server/internal/normal_game/aoi/collision"
+	"strconv"
 	"sync"
 	"testing"
 	"time"
@@ -37,7 +40,7 @@ func TestSingleMeet(t *testing.T) {
 			},
 		},
 	}
-	aoi := NewAOI(testHeroInitInfo, 40, 80, 1, 1, 1*time.Second, nil)
+	aoi := NewAOI(testHeroInitInfo, 40, 80, 1, 1, 1*time.Second, nil, nil)
 	aoi.Work()
 	time.Sleep(6 * time.Second)
 	aoi.Stop()
@@ -79,7 +82,7 @@ func TestSingleMeet2(t *testing.T) {
 			},
 		},
 	}
-	aoi := NewAOI(testHeroInitInfo, 5, 5, 1, 1, 1*time.Second, nil)
+	aoi := NewAOI(testHeroInitInfo, 5, 5, 1, 1, 1*time.Second, nil, nil)
 	aoi.Work()
 	wg := sync.WaitGroup{}
 	wg.Add(1)
@@ -146,4 +149,46 @@ func TestSingleMeet2(t *testing.T) {
 	aoi.RemoveHero(2)
 	aoi.RemoveHero(3)
 	aoi.Stop()
+}
+
+//TestAOI_Grid 梦幻联动
+func TestAOI_Grid(t *testing.T) {
+	var testHeroInitInfo = &HeroesInitInfo{
+		Speed: 0.001, //1s走1m
+		heroes: []*HeroMoveMsg{
+			{
+				Id:        1,
+				Position:  entity.NewVector2(0.1, 7),
+				Direction: entity.Vector2Right, //往右走
+				Time:      time.Now(),
+			},
+			//{
+			//	Id:        2,
+			//	Position:  entity.NewVector2(4.9, 0.1),
+			//	Direction: entity.Vector2Left, //往左走
+			//	Time:      time.Now(),
+			//},
+		},
+	}
+	aoi := NewAOI(testHeroInitInfo, TestGameMapWidth, TestGameMapHeight, TestGridWidth, TestGridHeight, 500*time.Millisecond, nil, TestMapQT)
+	//aoi.qt.Print()
+	go aoi.Work()
+	time.Sleep(10 * time.Second)
+}
+
+func TestNewRandomHeroesInitInfo(t *testing.T) {
+	const heroNum = 100
+	info := NewRandomHeroesInitInfo(heroNum, 0.001, TestMapQT)
+	if info.heroes == nil || len(info.heroes) != heroNum {
+		t.Fatalf("wrong num")
+	}
+	heroQt := collision.NewQuadtree(collision.NewRectangle("heroQt", entity.NewVector2(0, 0), configs.MapWidth, configs.MapHeight), 1)
+	for i := 0; i < heroNum; i++ {
+		heroMid := collision.NewRubyRectangleByMid(info.heroes[i].Position, "info-"+strconv.Itoa(i+1))
+		if TestMapQT.CheckCollision(heroMid) || heroQt.CheckCollision(heroMid) {
+			t.Fatalf("hero%d collision", i+1)
+		}
+		heroQt.Insert(heroMid)
+	}
+	heroQt.Print()
 }

@@ -7,8 +7,15 @@ import "broadcast.proto";
 message Unicast{
     UnicastCode               unicastCode                 = 1;
     HeroFrameSyncUnicast      heroFrameSyncUnicast        = 2;
+    HeroLeaveSightUnicast     heroLeaveSightUnicast       = 3;
 }
 
+//HeroFrameSyncUnicast 英雄每隔固定时间同步周围可见的英雄的位置报文
 message HeroFrameSyncUnicast{
     map<int32,HeroMovementChangeBroadcast> movement = 1;    //当前视野内的玩家的运动状态+当前位置+服务器发送包的时间
+}
+
+//HeroLeaveSightUnicast 其他英雄离开本英雄视野的报文
+message HeroLeaveSightUnicast{
+    int32  heroId   = 1;
 }

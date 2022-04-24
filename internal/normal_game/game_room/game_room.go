@@ -102,7 +102,11 @@ func (room *NormalGameRoom) Start() {
 	logger.Infof("room:%d 所有玩家准备就绪,开始游戏", room.Id)
 	room.StartTime = time.Now()
 	//代码执行到这里,所有的玩家都已经准备好
-	//room.aoi = aoi.NewAOI()
+	//todo 将测试地图改成真实的地图
+	room.aoi = aoi.NewAOI(aoi.NewRandomHeroesInitInfo(configs.MaxNormalGamePlayerNum, aoi.TestHeroSpeed, aoi.TestMapQT),
+		aoi.TestGameMapWidth, aoi.TestGameMapHeight, aoi.TestGridWidth, aoi.TestGridHeight, 100*time.Millisecond, room.GetNetServer(), aoi.TestMapQT)
+	/*	room.aoi = aoi.NewAOI(aoi.NewRandomHeroesInitInfo(configs.MaxNormalGamePlayerNum,aoi.TestHeroSpeed,aoi.NormalGameMapQt),
+		configs.MapWidth,configs.MapHeight,configs.GridWidth,configs.GridHeight,100 * time.Millisecond,room.GetNetServer(),aoi.NormalGameMapQt)*/
 	time.Sleep(20 * time.Millisecond)                                          //等待最后一个分配heroId的包到达
 	room.netServer.SendToAllPlayerConn(room.GetNormalGameStartBroadcastInfo()) //发消息通知所有的玩家游戏开始
 	room.Status = configs.NormalGameStartStatus
@@ -193,6 +197,7 @@ func (room *NormalGameRoom) DeletePlayer(pid int32) bool {
 	pm.LeaveLock.Unlock()
 	n := atomic.AddInt32(&room.PlayerNum, -1)
 	hid := pm.GetHeroId(pid)
+	room.aoi.RemoveHero(hid) //从aoi中删除该英雄
 	room.GetNetServer().DeleteConn(hid, pid)
 	pm.DeletePlayer(pm.GetPlayer(pid))
 	logger.Infof("room%d playerId为:%d,heroId为:%d的玩家已退出游戏,当前剩余%d人\n", room.Id, pid, hid, n)

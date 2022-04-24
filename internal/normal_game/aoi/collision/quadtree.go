@@ -5,7 +5,6 @@ import (
 	configs "melee_game_server/configs/normal_game_type_configs"
 	"melee_game_server/framework/entity"
 	"melee_game_server/plugins/logger"
-	"strconv"
 	"strings"
 )
 
@@ -27,7 +26,7 @@ type Quadtree struct {
 	Child     []*Quadtree //分别是0:左下角	1:左上角	2:右上角	3:右下角
 }
 
-//NewQuadtree 新建一颗四叉树
+//NewQuadtree 新建一颗四叉树,注意 self 字段最好使用NewRectangle新建一个Rectangle,因为涉及到链表
 func NewQuadtree(self *Rectangle, level int) *Quadtree {
 	return &Quadtree{
 		Self:  self,
@@ -45,10 +44,10 @@ func (qt *Quadtree) split() {
 
 	halfWidth, halfHeight := qt.Self.Width/2, qt.Self.Height/2
 	level := qt.Level + 1
-	qt.Child = append(qt.Child, NewQuadtree(NewRectangle(0, qt.Self.LL, halfWidth, halfHeight), level))                                                         //左下角
-	qt.Child = append(qt.Child, NewQuadtree(NewRectangle(0, entity.NewVector2(qt.Self.LL.X, qt.Self.LL.Y+halfHeight), halfWidth, halfHeight), level))           //左上角
-	qt.Child = append(qt.Child, NewQuadtree(NewRectangle(0, entity.NewVector2(qt.Self.LL.X+halfWidth, qt.Self.LL.Y+halfHeight), halfWidth, halfHeight), level)) //右上角
-	qt.Child = append(qt.Child, NewQuadtree(NewRectangle(0, entity.NewVector2(qt.Self.LL.X+halfWidth, qt.Self.LL.Y), halfWidth, halfHeight), level))            //右下角
+	qt.Child = append(qt.Child, NewQuadtree(NewRectangle(qt.Self.Name+"↙", qt.Self.LL, halfWidth, halfHeight), level))                                                         //左下角
+	qt.Child = append(qt.Child, NewQuadtree(NewRectangle(qt.Self.Name+"↖", entity.NewVector2(qt.Self.LL.X, qt.Self.LL.Y+halfHeight), halfWidth, halfHeight), level))           //左上角
+	qt.Child = append(qt.Child, NewQuadtree(NewRectangle(qt.Self.Name+"↗", entity.NewVector2(qt.Self.LL.X+halfWidth, qt.Self.LL.Y+halfHeight), halfWidth, halfHeight), level)) //右上角
+	qt.Child = append(qt.Child, NewQuadtree(NewRectangle(qt.Self.Name+"↘", entity.NewVector2(qt.Self.LL.X+halfWidth, qt.Self.LL.Y), halfWidth, halfHeight), level))            //右下角
 }
 
 //getIndex 判断r应该在qt的哪个孩子中.如果没有一个孩子可以完美的放下,那么返回-1,表示应该在qt本身中.
@@ -116,7 +115,7 @@ func (qt *Quadtree) CheckCollision(r *Rectangle) bool {
 	for obj := qt.Self.Next; obj != nil; obj = obj.Next {
 		//跟本节点中的地图资源比较
 		if obj.CollisionWith(r) {
-			logger.Infof("%d collision with %d", obj.Id, r.Id)
+			logger.Testf("%s collision with %s", obj.Name, r.Name)
 			return true
 		}
 	}
@@ -136,13 +135,13 @@ func (qt *Quadtree) Print() {
 func (qt *Quadtree) doPrint(prefix string) {
 	objId := make([]string, 0)
 	for obj := qt.Self.Next; obj != nil; obj = obj.Next {
-		objId = append(objId, strconv.Itoa(obj.Id))
+		objId = append(objId, obj.Name)
 	}
-	fmt.Printf("%s%+v,objs:[%s]\n", prefix, qt.Self, strings.Join(objId, " "))
+	fmt.Printf("%s%+v,objs:[%s]\n", prefix, qt.Self, strings.Join(objId, ","))
 	if len(qt.Child) == 4 {
-		qt.Child[0].doPrint("\t" + prefix + "↙ ")
-		qt.Child[1].doPrint("\t" + prefix + "↖ ")
-		qt.Child[2].doPrint("\t" + prefix + "↗ ")
-		qt.Child[3].doPrint("\t" + prefix + "↘ ")
+		qt.Child[0].doPrint("\t" + prefix)
+		qt.Child[1].doPrint("\t" + prefix)
+		qt.Child[2].doPrint("\t" + prefix)
+		qt.Child[3].doPrint("\t" + prefix)
 	}
 }

@@ -1,9 +1,10 @@
 package aoi
 
 import (
+	"fmt"
 	"melee_game_server/api/client/proto"
 	"melee_game_server/framework/entity"
-	"melee_game_server/internal/normal_game/aoi/object"
+	collision2 "melee_game_server/internal/normal_game/aoi/collision"
 	"melee_game_server/internal/normal_game/codec"
 	"melee_game_server/internal/normal_game/game_net"
 	"melee_game_server/plugins/logger"
@@ -20,14 +21,20 @@ import (
 */
 
 type MapInfo struct {
-	MX    int              //地图宽度
-	MY    int              //地图高度
-	GX    int              //每个格子的宽度
-	GY    int              //每个格子的高度
-	NGX   int              //X轴上有多少个格子
-	NGY   int              //Y轴上有多少个格子
-	NGrid int              //一共有多少个格子
-	Grids [][]*object.Grid //被上面的博客带跑偏了= =感觉还是二维数组比较好写 而且性能也一样的= =
+	MX    int       //地图宽度
+	MY    int       //地图高度
+	GX    int       //每个格子的宽度
+	GY    int       //每个格子的高度
+	NGX   int       //X轴上有多少个格子
+	NGY   int       //Y轴上有多少个格子
+	NGrid int       //一共有多少个格子
+	Grids [][]*Grid //被上面的博客带跑偏了= =感觉还是二维数组比较好写 而且性能也一样的= =
+	qt    *collision2.Quadtree
+}
+
+func (mp *MapInfo) String() string {
+	return fmt.Sprintf("宽度:%d,高度:%d,格子宽度:%d,格子高度:%d,X轴格子数:%d,Y轴格子数:,%d总格子数:%d,资源总数:%d",
+		mp.MX, mp.MY, mp.GX, mp.GY, mp.NGX, mp.NGY, mp.NGrid, mp.qt.TotalObjs)
 }
 
 type HeroInfo struct {
@@ -53,7 +60,7 @@ type AOI struct {
 }
 
 //GetGridByPos 获取当前位置应该属于哪个grid,并从中取出grid
-func (mp *MapInfo) GetGridByPos(pos *entity.Vector2) *object.Grid {
+func (mp *MapInfo) GetGridByPos(pos *entity.Vector2) *Grid {
 	if !mp.checkPositionLegal(pos) {
 		logger.Errorf("position:%+v is illegal", pos)
 		return nil
@@ -61,7 +68,7 @@ func (mp *MapInfo) GetGridByPos(pos *entity.Vector2) *object.Grid {
 	return mp.Grids[int(pos.Y)/mp.GY][(int(pos.X) / mp.GX)]
 }
 
-func (mp *MapInfo) GetGridByIdx(x, y int) *object.Grid {
+func (mp *MapInfo) GetGridByIdx(x, y int) *Grid {
 	if !mp.checkIdxLegal(x, y) {
 		//logger.Errorf("grid[%d][%d] is illegal",y,x)
 		return nil
@@ -73,13 +80,13 @@ func (mp *MapInfo) checkIdxLegal(x, y int) bool {
 	return !(x < 0 || y < 0 || x >= mp.NGX || y >= mp.NGY)
 }
 
-//checkPositionLegal 判断当前位置是否合法,注意例如我们的地图x最大值是40,那么40.2 or 40是违法的位置
+//checkPositionLegal 判断当前位置是否合法
 func (mp *MapInfo) checkPositionLegal(pos *entity.Vector2) bool {
-	return !(pos.X < 0 || int(pos.X) >= mp.MX || pos.Y < 0 || int(pos.Y) >= mp.MY)
+	return !(pos.X < 0 || int(pos.X) > mp.MX || pos.Y < 0 || int(pos.Y) > mp.MY)
 }
 
 //NewAOI 创建一个AOI模块
-func NewAOI(heroesInitInfo *HeroesInitInfo, mx, my, gx, gy int, updateDuration time.Duration, gn *game_net.NormalGameNetServer) *AOI {
+func NewAOI(heroesInitInfo *HeroesInitInfo, mx, my, gx, gy int, updateDuration time.Duration, gn *game_net.NormalGameNetServer, qt *collision2.Quadtree) *AOI {
 	if mx < 0 || my < 0 || gx < 0 || gy < 0 {
 		return nil
 	}
@@ -91,22 +98,22 @@ func NewAOI(heroesInitInfo *HeroesInitInfo, mx, my, gx, gy int, updateDuration t
 		MY:    my,
 		GX:    gx,
 		GY:    gy,
-		NGX:   mx/gx + 1, //例如mx为10,gx为6,那么x方向应有两个格子
-		NGY:   my/gy + 1,
-		NGrid: (mx/gx + 1) * (my/gy + 1),
+		NGX:   mx / gx,
+		NGY:   my / gy,
+		NGrid: (mx / gx) * (my / gy), //这个地方通过判断边界防止越界,不采用上边博客的多留一圈的方式了= =
+		qt:    qt,
 	}
 
-	logger.Infof("aoi完成地图的初始化:%+v", *mapInfo)
+	logger.Infof("aoi完成地图的初始化:[%+v]", mapInfo)
 	aoi.MapInfo = mapInfo
 	//初始化grids,创建NGrid个数的格子
-	id := 0
-	aoi.Grids = make([][]*object.Grid, mapInfo.NGY)
+	aoi.Grids = make([][]*Grid, mapInfo.NGY)
 	for i := 0; i < mapInfo.NGY; i++ {
-		aoi.Grids[i] = make([]*object.Grid, mapInfo.NGX)
+		aoi.Grids[i] = make([]*Grid, mapInfo.NGX)
 	}
 	for y := 0; y < mapInfo.NGY; y++ {
 		for x := 0; x < mapInfo.NGX; x++ {
-			aoi.Grids[y][x] = object.NewGrid(id, x, y, aoi.Grids)
+			aoi.Grids[y][x] = NewGrid(x, y, aoi.Grids)
 		}
 	}
 
@@ -142,7 +149,7 @@ func (aoi *AOI) UpdateHeroPosition(info *HeroMoveMsg) {
 		logger.Errorf("aoi收到了不存在的英雄位置更新信息:hero num:%d", info.Id)
 		return
 	}
-	hero.UpdateMovement(info)
+	hero.UpdateMovement(info, aoi.gn)
 }
 
 //Work aoi模块开始工作,每秒12帧的发送位置信息,注意一定是初始化了所有玩家的net.Conn才可以执行
@@ -160,7 +167,7 @@ func (aoi *AOI) Work() {
 				m := make(map[int32]*proto.HeroMovementChangeBroadcast, len(aoi.Heroes))
 				for _, hero = range aoi.Heroes {
 					//定时更新英雄的位置信息,更新hero的位置信息
-					hero.UpdateMovement(nil)
+					hero.UpdateMovement(nil, aoi.gn)
 					//把当前英雄的位置信息放到m中
 					m[hero.Id] = &proto.HeroMovementChangeBroadcast{
 						HeroId:           hero.Id,
@@ -177,9 +184,13 @@ func (aoi *AOI) Work() {
 							panic("!!!!!")
 						}
 					}
+					meMap[me.Id] = m[me.Id]
 					//logger.Infof("hero:%d 视野中的玩家有:%v",hero.Id,view)
-
-					aoi.gn.SendByHeroId([]int32{me.Id}, codec.EncodeUnicast(&proto.HeroFrameSyncUnicast{Movement: meMap}))
+					if aoi.gn != nil {
+						aoi.gn.SendByHeroId([]int32{me.Id}, codec.EncodeUnicast(&proto.HeroFrameSyncUnicast{Movement: meMap}))
+					} else {
+						logger.Testf("send to hero:%d,map:%v", me.Id, meMap)
+					}
 				}
 			case moveMsg = <-aoi.Move:
 				hero, ok = aoi.Heroes[moveMsg.Id]
@@ -187,7 +198,7 @@ func (aoi *AOI) Work() {
 					logger.Errorf("收到了已经退出/不存在的heroId", moveMsg.Id)
 					continue
 				} else {
-					hero.UpdateMovement(moveMsg)
+					hero.UpdateMovement(moveMsg, aoi.gn)
 				}
 			case quitMsg = <-aoi.Quit:
 				quitHeroId := quitMsg.id
@@ -216,6 +227,7 @@ func (aoi *AOI) PutMove(msg *HeroMoveMsg) {
 	aoi.Move <- msg
 }
 
+//RemoveHero 从aoi中删除该英雄,其他英雄看不到本英雄,并且不会给本英雄发位置信息
 func (aoi *AOI) RemoveHero(id int32) {
 	aoi.Quit <- &HeroQuitMsg{id: id}
 }

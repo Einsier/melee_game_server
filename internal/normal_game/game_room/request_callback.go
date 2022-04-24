@@ -5,6 +5,7 @@ import (
 	configs "melee_game_server/configs/normal_game_type_configs"
 	"melee_game_server/framework/entity"
 	"melee_game_server/framework/game_net/api"
+	"melee_game_server/internal/normal_game/aoi"
 	"melee_game_server/internal/normal_game/codec"
 	gt "melee_game_server/internal/normal_game/game_type"
 	"melee_game_server/plugins/logger"
@@ -127,17 +128,17 @@ func HeroMovementChangeRequestCallback(msg *api.Mail, room *NormalGameRoom) {
 	req := msg.Msg.Request.HeroMovementChangeRequest
 	hid := req.HeroId
 	if room.Status == configs.NormalGameStartStatus {
-		logger.Testf("heroId:%d,time:%v,position:%v", req.HeroId, req.Time, req.Position)
-		position := entity.NewVector2(req.Position.X, req.Position.Y)
-		room.heroManager.UpdateHeroPositionInfo(hid, position, req.Time, req.HeroMovementType)
-		broadHeroes := room.heroManager.GetHeroesNearby(hid)
-		broad := codec.Encode(&pb.HeroMovementChangeBroadcast{
-			HeroId:           hid,
-			HeroMovementType: req.HeroMovementType,
-			Time:             req.Time,
-			HeroPosition:     req.Position,
-		})
-		room.GetNetServer().SendByHeroId(broadHeroes, broad)
+		//logger.Testf("heroId:%d,time:%v,position:%v", req.HeroId, req.Time, req.Position)
+		//room.heroManager.UpdateHeroPositionInfo(hid, position, req.Time, req.HeroMovementType)
+		//broadHeroes := room.heroManager.GetHeroesNearby(hid)
+		//broad := codec.Encode(&pb.HeroMovementChangeBroadcast{
+		//	HeroId:           hid,
+		//	HeroMovementType: req.HeroMovementType,
+		//	Time:             req.Time,
+		//	HeroPosition:     req.Position,
+		//})
+		//room.GetNetServer().SendByHeroId(broadHeroes, broad)
+		room.aoi.PutMove(aoi.NewHeroMoveMsgFromProto(req))
 		return
 	}
 	logger.Errorf("[HeroMovementChangeRequestCallback]在%d阶段收到了heroId:%d,的HeroPositionReportRequest!\n", room.Status, hid)

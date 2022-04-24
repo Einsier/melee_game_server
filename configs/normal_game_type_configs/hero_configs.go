@@ -17,10 +17,10 @@ const HeroMaxHealth = 20  //最大血量
 const HeroInitHealth = 20 //初始血量
 
 const (
-	HeroColliderX       = 0.6722848 //Ruby的碰撞宽度
-	HeroColliderY       = 0.3633368 //Ruby的碰撞高度
-	HeroColliderOffsetX = 0.0       //Ruby的碰撞偏移X
-	HeroColliderOffsetY = 0.0       //Ruby的碰撞偏移Y
+	HeroColliderX     = float32(1)        //Ruby的碰撞宽度
+	HeroColliderY     = float32(0.5)      //Ruby的碰撞高度
+	HeroColliderXHalf = HeroColliderX / 2 //碰撞宽度的一半
+	HeroColliderYHalf = HeroColliderY / 2 //碰撞高度的一半
 )
 
 const HeroMoveSpeed = 0.008 //英雄移动速度,单位为m/ms,即8m/s

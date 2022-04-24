@@ -1,9 +1,13 @@
 package aoi
 
 import (
+	"melee_game_server/api/client/proto"
 	"melee_game_server/framework/entity"
-	"melee_game_server/internal/normal_game/aoi/object"
+	"melee_game_server/internal/normal_game/aoi/collision"
+	"melee_game_server/internal/normal_game/codec"
+	"melee_game_server/internal/normal_game/game_net"
 	"melee_game_server/plugins/logger"
+	"strconv"
 	"time"
 )
 
@@ -19,12 +23,12 @@ Hero mu lock->更改英雄位置->英雄离开的Grid mu lock->删除英雄->英
 */
 
 type Hero struct {
-	Id int32 //英雄id
-
+	Id         int32 //英雄id
+	Name       string
 	direction  entity.Vector2 //当前运动状态,是Vector2Up,Down,Left,Right,Zero的枚举
-	position   entity.Vector2 //英雄当前位置
+	position   entity.Vector2 //英雄当前位置,也就是Ruby的中心的位置
 	updateTime time.Time      //上次位置更新时间
-	at         *object.Grid   //当前处于哪个格子
+	at         *Grid          //当前处于哪个格子
 	speed      float32
 	aoi        *AOI
 	View       map[int32]struct{} //能看到的英雄
@@ -36,7 +40,7 @@ func (h *Hero) VisibleHeroes() []int32 {
 
 //NewHero 初始化英雄,需要初始化英雄当前所在的格子,所以需要将aoi传入
 func NewHero(id int32, position, direction entity.Vector2, speed float32, aoi *AOI) *Hero {
-	var grid *object.Grid
+	var grid *Grid
 	if grid = aoi.GetGridByPos(&position); grid == nil {
 		return nil
 	} else {
@@ -51,6 +55,7 @@ func NewHero(id int32, position, direction entity.Vector2, speed float32, aoi *A
 
 	return &Hero{
 		Id:         id,
+		Name:       "Hero-" + strconv.Itoa(int(id)),
 		position:   position,
 		direction:  direction,
 		speed:      speed,
@@ -62,7 +67,7 @@ func NewHero(id int32, position, direction entity.Vector2, speed float32, aoi *A
 }
 
 //UpdateMovement 更改玩家位置的唯一方式,如果传入的info不为nil,按照给定的info更新玩家位置,如果传入的info为nil,那么按照上次更新的时间更新
-func (h *Hero) UpdateMovement(info *HeroMoveMsg) {
+func (h *Hero) UpdateMovement(info *HeroMoveMsg, gn *game_net.NormalGameNetServer) {
 	if info == nil {
 		//当前是定时更新,自己计算更新的info
 		info = new(HeroMoveMsg)
@@ -84,13 +89,20 @@ func (h *Hero) UpdateMovement(info *HeroMoveMsg) {
 			Y: h.position.Y + float32(info.Time.Sub(h.updateTime).Milliseconds())*h.speed*h.direction.Y,
 		}
 	}
+	//现在info中存放的是希望走的位置,h.position是英雄原来的位置,应该做碰撞校验,判断英雄到现在的位置是否合法,如果合法,那么进行到下一步,更新九宫格
+	//如果不合法,那么只是更新updateTime和,不改变h.position,这样相当于将英雄退回到上一帧的位置.
+	if h.aoi.qt.CheckCollision(collision.NewRubyCollisionCheckRectangle(h.Name, &h.position, &info.Position)) {
+		h.direction = info.Direction
+		h.updateTime = info.Time
+		return
+	}
 
 	//更新位置
 	if to := h.aoi.GetGridByPos(&info.Position); to != nil {
 		//如果更新的位置是正确的,那么更新位置,否则判断玩家位置不合法,让玩家位于上次更新的位置
-		var joinGrid, leaveGrid []*object.Grid
+		var joinGrid, leaveGrid []*Grid
 		refreshAll := func() {
-			leaveGrid = []*object.Grid{
+			leaveGrid = []*Grid{
 				h.aoi.GetGridByIdx(h.at.XIdx-1, h.at.YIdx+1),
 				h.aoi.GetGridByIdx(h.at.XIdx-1, h.at.YIdx),
 				h.aoi.GetGridByIdx(h.at.XIdx-1, h.at.YIdx-1),
@@ -100,7 +112,7 @@ func (h *Hero) UpdateMovement(info *HeroMoveMsg) {
 				h.aoi.GetGridByIdx(h.at.XIdx, h.at.YIdx+1),
 				h.aoi.GetGridByIdx(h.at.XIdx, h.at.YIdx-1),
 			}
-			joinGrid = []*object.Grid{
+			joinGrid = []*Grid{
 				h.aoi.GetGridByIdx(to.XIdx-1, to.YIdx+1),
 				h.aoi.GetGridByIdx(to.XIdx-1, to.YIdx),
 				h.aoi.GetGridByIdx(to.XIdx-1, to.YIdx-1),
@@ -125,24 +137,24 @@ func (h *Hero) UpdateMovement(info *HeroMoveMsg) {
 				//如果Y没有变化,说明玩家左右移动
 				if to.XIdx-h.at.XIdx == 1 {
 					//玩家向右移动:	to在at的右边->删除at所在的格子的左边三个格子中的英雄的View中的本英雄id+向to所在的格子的右边三个格子中的英雄的View添加本英雄id
-					leaveGrid = []*object.Grid{
+					leaveGrid = []*Grid{
 						h.aoi.GetGridByIdx(h.at.XIdx-1, h.at.YIdx+1),
 						h.aoi.GetGridByIdx(h.at.XIdx-1, h.at.YIdx),
 						h.aoi.GetGridByIdx(h.at.XIdx-1, h.at.YIdx-1),
 					}
-					joinGrid = []*object.Grid{
+					joinGrid = []*Grid{
 						h.aoi.GetGridByIdx(to.XIdx+1, to.YIdx+1),
 						h.aoi.GetGridByIdx(to.XIdx+1, to.YIdx),
 						h.aoi.GetGridByIdx(to.XIdx+1, to.YIdx-1),
 					}
 				} else if to.XIdx-h.at.XIdx == -1 {
 					//玩家向左移动:	to在at的左边->删除at所在的格子的右边三个格子中的英雄的View中的本英雄id+向to所在的格子的左边三个格子中的英雄的View添加本英雄id
-					leaveGrid = []*object.Grid{
+					leaveGrid = []*Grid{
 						h.aoi.GetGridByIdx(h.at.XIdx+1, h.at.YIdx+1),
 						h.aoi.GetGridByIdx(h.at.XIdx+1, h.at.YIdx),
 						h.aoi.GetGridByIdx(h.at.XIdx+1, h.at.YIdx-1),
 					}
-					joinGrid = []*object.Grid{
+					joinGrid = []*Grid{
 						h.aoi.GetGridByIdx(to.XIdx-1, to.YIdx+1),
 						h.aoi.GetGridByIdx(to.XIdx-1, to.YIdx),
 						h.aoi.GetGridByIdx(to.XIdx-1, to.YIdx-1),
@@ -155,24 +167,24 @@ func (h *Hero) UpdateMovement(info *HeroMoveMsg) {
 				//如果X没有变化,说明玩家上下移动
 				if to.YIdx-h.at.YIdx == 1 {
 					//玩家向上移动:	to在at的上边->删除at所在的格子的下边三个格子中的英雄的View中的本英雄id+向to所在的格子的上边三个格子中的英雄的View添加本英雄id
-					leaveGrid = []*object.Grid{
+					leaveGrid = []*Grid{
 						h.aoi.GetGridByIdx(h.at.XIdx-1, h.at.YIdx-1),
 						h.aoi.GetGridByIdx(h.at.XIdx+1, h.at.YIdx-1),
 						h.aoi.GetGridByIdx(h.at.XIdx, h.at.YIdx-1),
 					}
-					joinGrid = []*object.Grid{
+					joinGrid = []*Grid{
 						h.aoi.GetGridByIdx(to.XIdx+1, to.YIdx+1),
 						h.aoi.GetGridByIdx(to.XIdx-1, to.YIdx+1),
 						h.aoi.GetGridByIdx(to.XIdx, to.YIdx+1),
 					}
 				} else if to.YIdx-h.at.YIdx == -1 {
 					//玩家向下移动:	to在at的下边->删除at所在的格子的上边三个格子中的英雄的View中的本英雄id+向to所在的格子的下边三个格子中的英雄的View添加本英雄id
-					leaveGrid = []*object.Grid{
+					leaveGrid = []*Grid{
 						h.aoi.GetGridByIdx(h.at.XIdx+1, h.at.YIdx+1),
 						h.aoi.GetGridByIdx(h.at.XIdx, h.at.YIdx+1),
 						h.aoi.GetGridByIdx(h.at.XIdx-1, h.at.YIdx+1),
 					}
-					joinGrid = []*object.Grid{
+					joinGrid = []*Grid{
 						h.aoi.GetGridByIdx(to.XIdx-1, to.YIdx-1),
 						h.aoi.GetGridByIdx(to.XIdx, to.YIdx-1),
 						h.aoi.GetGridByIdx(to.XIdx+1, to.YIdx-1),
@@ -196,6 +208,12 @@ func (h *Hero) UpdateMovement(info *HeroMoveMsg) {
 						delete(h.aoi.Heroes[id].View, h.Id)
 						//将leaveGrid中的英雄从本英雄的可见英雄集合中删除
 						delete(h.View, id)
+
+						//分别给自己和其他英雄发送离开视野的报文,让前端取消加载英雄
+						msg1 := codec.EncodeUnicast(&proto.HeroLeaveSightUnicast{HeroId: h.Id})
+						msg2 := codec.EncodeUnicast(&proto.HeroLeaveSightUnicast{HeroId: id})
+						gn.SendByHeroId([]int32{id}, msg1)
+						gn.SendByHeroId([]int32{h.Id}, msg2)
 						logger.Infof("[%d][%d]离开了彼此的视野", id, h.Id)
 					}
 				}

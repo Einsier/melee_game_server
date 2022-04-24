@@ -105,6 +105,7 @@ func (room *NormalGameRoom) Start() {
 	//todo 将测试地图改成真实的地图
 	room.aoi = aoi.NewAOI(aoi.NewRandomHeroesInitInfo(configs.MaxNormalGamePlayerNum, aoi.TestHeroSpeed, aoi.TestMapQT),
 		aoi.TestGameMapWidth, aoi.TestGameMapHeight, aoi.TestGridWidth, aoi.TestGridHeight, 100*time.Millisecond, room.GetNetServer(), aoi.TestMapQT)
+	room.aoi.Work()
 	/*	room.aoi = aoi.NewAOI(aoi.NewRandomHeroesInitInfo(configs.MaxNormalGamePlayerNum,aoi.TestHeroSpeed,aoi.NormalGameMapQt),
 		configs.MapWidth,configs.MapHeight,configs.GridWidth,configs.GridHeight,100 * time.Millisecond,room.GetNetServer(),aoi.NormalGameMapQt)*/
 	time.Sleep(20 * time.Millisecond)                                          //等待最后一个分配heroId的包到达

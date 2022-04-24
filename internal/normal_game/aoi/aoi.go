@@ -98,9 +98,9 @@ func NewAOI(heroesInitInfo *HeroesInitInfo, mx, my, gx, gy int, updateDuration t
 		MY:    my,
 		GX:    gx,
 		GY:    gy,
-		NGX:   mx / gx,
-		NGY:   my / gy,
-		NGrid: (mx / gx) * (my / gy), //这个地方通过判断边界防止越界,不采用上边博客的多留一圈的方式了= =
+		NGX:   mx/gx + 1,
+		NGY:   my/gy + 1,
+		NGrid: (mx/gx + 1) * (my/gy + 1), //如果例如Map的X不能被Grid的X整除,那么需要额外多一个格子,防止溢出
 		qt:    qt,
 	}
 

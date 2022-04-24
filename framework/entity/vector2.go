@@ -41,6 +41,13 @@ var V2toToHeroMovementType = map[Vector2]proto.HeroMovementType{
 	Vector2Down:  proto.HeroMovementType_HeroMoveDownType,
 	Vector2Zero:  proto.HeroMovementType_HeroStopType,
 }
+var HeroMovementTypeToV2 = map[proto.HeroMovementType]Vector2{
+	proto.HeroMovementType_HeroMoveLeftType:  Vector2Left,
+	proto.HeroMovementType_HeroMoveRightType: Vector2Right,
+	proto.HeroMovementType_HeroMoveUpType:    Vector2Up,
+	proto.HeroMovementType_HeroMoveDownType:  Vector2Down,
+	proto.HeroMovementType_HeroStopType:      Vector2Zero,
+}
 
 func (v *Vector2) Add(v2 Vector2) Vector2 {
 	return NewVector2(v.X+v2.X, v.Y+v2.Y)

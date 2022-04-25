@@ -82,7 +82,7 @@ func (mp *MapInfo) checkIdxLegal(x, y int) bool {
 
 //checkPositionLegal 判断当前位置是否合法
 func (mp *MapInfo) checkPositionLegal(pos *entity.Vector2) bool {
-	return !(pos.X < 0 || int(pos.X) > mp.MX || pos.Y < 0 || int(pos.Y) > mp.MY)
+	return !(pos.X < 0 || int(pos.X) >= mp.MX || pos.Y < 0 || int(pos.Y) >= mp.MY)
 }
 
 //NewAOI 创建一个AOI模块

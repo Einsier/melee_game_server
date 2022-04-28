@@ -95,7 +95,7 @@ func (room *NormalGameRoom) Init(info *game_room.RoomInitInfo) {
 //注意应该使用go Start()进行调用,然后外面监听room.over
 func (room *NormalGameRoom) Start() {
 	room.Status = configs.NormalGameWaitPlayerStatus
-	//room.netServer.Start()
+	//room.netServer.Start()x
 	//go room.requestController.Work1(room)
 	go room.requestController.Work2(room)
 	<-room.Prepare
@@ -103,11 +103,11 @@ func (room *NormalGameRoom) Start() {
 	room.StartTime = time.Now()
 	//代码执行到这里,所有的玩家都已经准备好
 	//todo 将测试地图改成真实的地图
-	room.aoi = aoi.NewAOI(aoi.NewRandomHeroesInitInfo(configs.MaxNormalGamePlayerNum, aoi.TestHeroSpeed, aoi.TestMapQT),
-		aoi.TestGameMapWidth, aoi.TestGameMapHeight, aoi.TestGridWidth, aoi.TestGridHeight, 100*time.Millisecond, room.GetNetServer(), aoi.TestMapQT)
+	/*	room.aoi = aoi.NewAOI(aoi.NewRandomHeroesInitInfo(configs.MaxNormalGamePlayerNum, aoi.TestHeroSpeed, aoi.TestMapQT),
+		aoi.TestGameMapWidth, aoi.TestGameMapHeight, aoi.TestGridWidth, aoi.TestGridHeight, 100*time.Millisecond, room.GetNetServer(), aoi.TestMapQT)*/
+	room.aoi = aoi.NewAOI(aoi.NewRandomHeroesInitInfo(configs.MaxNormalGamePlayerNum, configs.HeroMoveSpeed, aoi.NormalGameMapQt),
+		configs.MapWidth, configs.MapHeight, configs.GridWidth, configs.GridHeight, configs.FrameSyncSlice, room.GetNetServer(), aoi.NormalGameMapQt)
 	room.aoi.Work()
-	/*	room.aoi = aoi.NewAOI(aoi.NewRandomHeroesInitInfo(configs.MaxNormalGamePlayerNum,aoi.TestHeroSpeed,aoi.NormalGameMapQt),
-		configs.MapWidth,configs.MapHeight,configs.GridWidth,configs.GridHeight,100 * time.Millisecond,room.GetNetServer(),aoi.NormalGameMapQt)*/
 	time.Sleep(20 * time.Millisecond)                                          //等待最后一个分配heroId的包到达
 	room.netServer.SendToAllPlayerConn(room.GetNormalGameStartBroadcastInfo()) //发消息通知所有的玩家游戏开始
 	room.Status = configs.NormalGameStartStatus

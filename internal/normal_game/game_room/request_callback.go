@@ -138,6 +138,7 @@ func HeroMovementChangeRequestCallback(msg *api.Mail, room *NormalGameRoom) {
 		//	HeroPosition:     req.Position,
 		//})
 		//room.GetNetServer().SendByHeroId(broadHeroes, broad)
+		req.Time = time.Now().UnixMilli()
 		room.aoi.PutMove(aoi.NewHeroMoveMsgFromProto(req))
 		return
 	}

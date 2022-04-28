@@ -82,7 +82,7 @@ func TestSingleMeet2(t *testing.T) {
 			},
 		},
 	}
-	aoi := NewAOI(testHeroInitInfo, 5, 5, 1, 1, 1*time.Second, nil, nil)
+	aoi := NewAOI(testHeroInitInfo, 5, 5, 1, 1, 1*time.Second, nil, TestMapQT)
 	aoi.Work()
 	wg := sync.WaitGroup{}
 	wg.Add(1)

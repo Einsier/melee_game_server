@@ -55,7 +55,7 @@ func NewHero(id int32, position, direction entity.Vector2, speed float32, aoi *A
 
 	return &Hero{
 		Id:         id,
-		Name:       "Hero-" + strconv.Itoa(int(id)),
+		Name:       "Hero" + strconv.Itoa(int(id)),
 		position:   position,
 		direction:  direction,
 		speed:      speed,
@@ -92,7 +92,8 @@ func (h *Hero) UpdateMovement(info *HeroMoveMsg, gn *game_net.NormalGameNetServe
 	//现在info中存放的是希望走的位置,h.position是英雄原来的位置,应该做碰撞校验,判断英雄到现在的位置是否合法,如果合法,那么进行到下一步,更新九宫格
 	//如果不合法,那么只是更新updateTime和,不改变h.position,这样相当于将英雄退回到上一帧的位置.
 	if h.aoi.qt.CheckCollision(collision.NewRubyCollisionCheckRectangle(h.Name, &h.position, &info.Position)) {
-		h.direction = info.Direction
+		//发生碰撞让玩家停下
+		h.direction = entity.Vector2Zero
 		h.updateTime = info.Time
 		return
 	}
@@ -220,18 +221,24 @@ func (h *Hero) UpdateMovement(info *HeroMoveMsg, gn *game_net.NormalGameNetServe
 				if joinGrid[i] != nil {
 					//这里需要判断是否越界
 					for id := range joinGrid[i].Objs {
-						//将本英雄加入到joinGrid中的英雄的可见英雄集合中
-						h.aoi.Heroes[id].View[h.Id] = struct{}{}
-						//将joinGrid中的英雄的可见英雄中加入本英雄
-						h.View[id] = struct{}{}
-						logger.Infof("[%d][%d]进入了彼此的视野", id, h.Id)
+						if id != h.Id {
+							//将本英雄加入到joinGrid中的英雄的可见英雄集合中
+							//bug fix:让自己不进入自己的可见英雄之内
+							h.aoi.Heroes[id].View[h.Id] = struct{}{}
+							//将joinGrid中的英雄的可见英雄中加入本英雄
+							h.View[id] = struct{}{}
+							logger.Infof("[%d][%d]进入了彼此的视野", id, h.Id)
+						}
 					}
 				}
 			}
 		}
+		h.direction = info.Direction
 		h.position = info.Position //更新玩家位置
 		h.at = to
-		h.direction = info.Direction
+	} else {
+		//如果越界,那么同样将玩家的direction改成zero
+		h.direction = entity.Vector2Zero
 	}
 	h.updateTime = info.Time
 }

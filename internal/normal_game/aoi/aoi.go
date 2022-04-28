@@ -33,7 +33,7 @@ type MapInfo struct {
 }
 
 func (mp *MapInfo) String() string {
-	return fmt.Sprintf("宽度:%d,高度:%d,格子宽度:%d,格子高度:%d,X轴格子数:%d,Y轴格子数:,%d总格子数:%d,资源总数:%d",
+	return fmt.Sprintf("宽度:%d,高度:%d,格子宽度:%d,格子高度:%d,X轴格子数:%d,Y轴格子数:%d,总格子数:%d,资源总数:%d",
 		mp.MX, mp.MY, mp.GX, mp.GY, mp.NGX, mp.NGY, mp.NGrid, mp.qt.TotalObjs)
 }
 
@@ -185,8 +185,12 @@ func (aoi *AOI) Work() {
 						}
 					}
 					meMap[me.Id] = m[me.Id]
-					//logger.Infof("hero:%d 视野中的玩家有:%v",hero.Id,view)
 					if aoi.gn != nil {
+						//str := ""
+						//for i, _ := range meMap {
+						//	str += strconv.Itoa(int(i))
+						//}
+						//logger.Testf("发送给[%d]:%+v",me.Id,meMap)
 						aoi.gn.SendByHeroId([]int32{me.Id}, codec.EncodeUnicast(&proto.HeroFrameSyncUnicast{Movement: meMap}))
 					} else {
 						logger.Testf("send to hero:%d,map:%v", me.Id, meMap)
@@ -195,7 +199,7 @@ func (aoi *AOI) Work() {
 			case moveMsg = <-aoi.Move:
 				hero, ok = aoi.Heroes[moveMsg.Id]
 				if !ok {
-					logger.Errorf("收到了已经退出/不存在的heroId", moveMsg.Id)
+					logger.Errorf("收到了已经退出/不存在的heroId:%d", moveMsg.Id)
 					continue
 				} else {
 					hero.UpdateMovement(moveMsg, aoi.gn)

@@ -63,11 +63,11 @@ message HeroGetPropRequest{
 }
 
 message HeroBulletColliderHeroRequest{
-    //int32       heroId          = 1;
+    int32       heroId          = 1;
     //int32       bulletId        = 2;
-    int64       bulletId        = 1;
-    int32       colliderHeroId  = 2;
-    int64       colliderTime    = 3;
+    //int32       bulletId        = 1;
+    int32        colliderHeroId  = 2;
+    //int64       colliderTime    = 3;
 }
 
 message PlayerHeartBeatRequest{

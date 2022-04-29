@@ -41,7 +41,7 @@ var gameMapObs = []*collision.Rectangle{
 	collision.NewRectangle("House3", entity.NewVector2(195.5, 16.5), 6, 7),
 	collision.NewRectangle("Pool1", entity.NewVector2(54, 26), 7, 22),
 	collision.NewRectangle("Pool2", entity.NewVector2(33, 101), 11, 6),
-	collision.NewRectangle("Pool3", entity.NewVector2(165, 24), 35, 15),
+	collision.NewRectangle("Pool3", entity.NewVector2(165, 24), 25, 15),
 }
 
 //NormalGameMapQt NormalGame全局四叉树,存储全局信息,不能增删改

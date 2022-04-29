@@ -179,18 +179,13 @@ func (aoi *AOI) Work() {
 				for _, me := range aoi.Heroes {
 					//将当前hero视野中的全部英雄的topMsg的指针放到view中,把view传给网络模块进行发送
 					meMap := make(map[int32]*proto.HeroMovementChangeBroadcast)
-					for otherId := range hero.View {
+					for otherId := range me.View {
 						if meMap[otherId] = m[otherId]; meMap[otherId] == nil {
 							panic("!!!!!")
 						}
 					}
 					meMap[me.Id] = m[me.Id]
 					if aoi.gn != nil {
-						//str := ""
-						//for i, _ := range meMap {
-						//	str += strconv.Itoa(int(i))
-						//}
-						//logger.Testf("发送给[%d]:%+v",me.Id,meMap)
 						aoi.gn.SendByHeroId([]int32{me.Id}, codec.EncodeUnicast(&proto.HeroFrameSyncUnicast{Movement: meMap}))
 					} else {
 						logger.Testf("send to hero:%d,map:%v", me.Id, meMap)

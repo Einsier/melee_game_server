@@ -16,6 +16,7 @@ message Broadcast{
     GameStartBroadcast              gameStartBroadcast            = 9;
     HeroDeadBroadcast               heroDeadBroadcast             = 10;
     HeroBulletDestroyBroadcast      heroBulletDestroyBroadcast    = 11;
+    GameOverBroadcast               gameOverBroadcast             = 12;
 }
 
 message HeroChangeHealthBroadcast{
@@ -54,7 +55,8 @@ message HeroSwordAttackBroadcast{
 }
 
 message HeroBulletLaunchBroadcast{
-    int64 bulletId          = 1;
+    //int64 bulletId          = 1;
+    int32   heroId          = 1;
     Vector2 position        = 2;
     Vector2 direction       = 3;
     int64 time              = 4;
@@ -65,7 +67,8 @@ message GameStartBroadcast{
 }
 
 message GameOverBroadcast{
-    int64 time      = 1;
+    //int64 time      = 1;
+    int32 heroId = 1;
 }
 
 message HeroDeadBroadcast{

@@ -46,9 +46,10 @@ type HeroInfo struct {
 }
 
 type MsgChan struct {
-	Ticker *time.Ticker      //定期发包的定时器
-	Quit   chan *HeroQuitMsg //英雄退出的chan
-	Move   chan *HeroMoveMsg //英雄移动的chan
+	Ticker *time.Ticker          //定期发包的定时器
+	Quit   chan *HeroQuitMsg     //英雄退出的chan
+	Move   chan *HeroMoveMsg     //英雄移动的chan
+	Bullet chan *BulletLaunchMsg //英雄发射子弹chan
 	Finish chan struct{}
 }
 
@@ -62,7 +63,7 @@ type AOI struct {
 //GetGridByPos 获取当前位置应该属于哪个grid,并从中取出grid
 func (mp *MapInfo) GetGridByPos(pos *entity.Vector2) *Grid {
 	if !mp.checkPositionLegal(pos) {
-		logger.Errorf("position:%+v is illegal", pos)
+		//logger.Errorf("position:%+v is illegal", pos)
 		return nil
 	}
 	return mp.Grids[int(pos.Y)/mp.GY][(int(pos.X) / mp.GX)]
@@ -137,6 +138,7 @@ func NewAOI(heroesInitInfo *HeroesInitInfo, mx, my, gx, gy int, updateDuration t
 	aoi.MsgChan = new(MsgChan)
 	aoi.Quit = make(chan *HeroQuitMsg, 512)
 	aoi.Move = make(chan *HeroMoveMsg, 65536)
+	aoi.Bullet = make(chan *BulletLaunchMsg, 65536)
 	aoi.Finish = make(chan struct{})
 	aoi.gn = gn
 	return aoi
@@ -158,6 +160,7 @@ func (aoi *AOI) Work() {
 	go func() {
 		var quitMsg *HeroQuitMsg
 		var moveMsg *HeroMoveMsg
+		var bulletMsg *BulletLaunchMsg
 		var hero *Hero
 		var ok bool
 		for {
@@ -201,11 +204,31 @@ func (aoi *AOI) Work() {
 				}
 			case quitMsg = <-aoi.Quit:
 				quitHeroId := quitMsg.id
+				//从格子中删除掉该英雄
+				delete(aoi.Heroes[quitHeroId].at.Objs, quitHeroId)
 				//英雄退出,从map中删除英雄,并且从能看到被删玩家的玩家的View中删除被删玩家
 				for otherHeroId := range aoi.Heroes[quitHeroId].View {
 					delete(aoi.Heroes[otherHeroId].View, quitHeroId)
 				}
 				delete(aoi.Heroes, quitHeroId)
+			case bulletMsg = <-aoi.Bullet:
+				//todo 校验英雄位置是否合法
+				//对当前英雄视野范围内的英雄广播子弹的发射事件
+				broad := &proto.HeroBulletLaunchBroadcast{
+					HeroId:    bulletMsg.HeroId,
+					Position:  bulletMsg.Position.ToProto(),
+					Direction: bulletMsg.Direction.ToProto(),
+					Time:      time.Now().UnixMilli(),
+				}
+				msg := codec.Encode(broad)
+				otherHeroSli := make([]int32, len(aoi.Heroes[bulletMsg.HeroId].View))
+				i := 0
+				for other := range aoi.Heroes[bulletMsg.HeroId].View {
+					otherHeroSli[i] = other
+					i++
+				}
+				otherHeroSli = append(otherHeroSli, bulletMsg.HeroId)
+				aoi.gn.SendByHeroId(otherHeroSli, msg)
 			case <-aoi.Finish:
 				//结束
 				logger.Infof("aoi模块结束工作")
@@ -224,6 +247,10 @@ func (aoi *AOI) Stop() {
 
 func (aoi *AOI) PutMove(msg *HeroMoveMsg) {
 	aoi.Move <- msg
+}
+
+func (aoi *AOI) PutBulletLaunchMsg(msg *BulletLaunchMsg) {
+	aoi.Bullet <- msg
 }
 
 //RemoveHero 从aoi中删除该英雄,其他英雄看不到本英雄,并且不会给本英雄发位置信息

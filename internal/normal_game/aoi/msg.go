@@ -28,6 +28,13 @@ type SingleHeroInitInfo struct {
 	*HeroMoveMsg
 }
 
+type BulletLaunchMsg struct {
+	HeroId    int32
+	Position  entity.Vector2
+	Direction entity.Vector2
+	Time      time.Time
+}
+
 //HeroMoveMsg 表示英雄的当前状态
 type HeroMoveMsg struct {
 	Id        int32

@@ -88,9 +88,9 @@ func (hm *HeroesManager) GetHeroDirection(heroId int32) entity.Vector2 {
 }
 
 //DeleteHero 从heroes中删除一个英雄.由于使用的不是互斥锁,所以不能在游戏的过程中删除英雄!
-func (hm *HeroesManager) DeleteHero(h *gt.Hero) {
-	delete(hm.heroes, h.Id)
-}
+//func (hm *HeroesManager) DeleteHero(h *gt.Hero) {
+//	delete(hm.heroes, h.Id)
+//}
 
 //UpdateHeroPositionInfo 更改hero的position,updateTime,moveStatus三个属性
 func (hm *HeroesManager) UpdateHeroPositionInfo(heroId int32, position entity.Vector2, updateTime int64, movementType pb.HeroMovementType) {

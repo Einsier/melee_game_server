@@ -70,21 +70,22 @@ func (ngs *NormalGameNetServer) SendByHeroId(hIdSlice []int32, msg *proto.TopMes
 	ngs.np.Send(gn.NewReplyMail(sendConn, msg))
 }
 
-//SendToAllPlayerConn 向所有的Player的Conn发送消息
-func (ngs *NormalGameNetServer) SendToAllPlayerConn(msg *proto.TopMessage) {
-	sendConn := make([]net.Conn, 0)
-	for _, conn := range ngs.playerConn {
-		if conn != nil {
-			sendConn = append(sendConn, conn)
-		}
-	}
-	ngs.np.Send(gn.NewReplyMail(sendConn, msg))
-}
+//因为normal_game_net无法感知当前在线的玩家数目(因为为了效率没有加锁,所以不能中途增删改玩家 map,所以只能上层来检测当前的在线玩家.)
+////SendToAllPlayerConn 向所有的Player的Conn发送消息
+//func (ngs *NormalGameNetServer) SendToAllPlayerConn(msg *proto.TopMessage) {
+//	sendConn := make([]net.Conn, 0)
+//	for _, conn := range ngs.playerConn {
+//		if conn != nil {
+//			sendConn = append(sendConn, conn)
+//		}
+//	}
+//	ngs.np.Send(gn.NewReplyMail(sendConn, msg))
+//}
 
 func (ngs *NormalGameNetServer) SendByPlayerId(pIdSlice []int32, msg *proto.TopMessage) {
 	sendConn := make([]net.Conn, 0)
-	for _, hId := range pIdSlice {
-		conn := ngs.heroConn[hId]
+	for _, pId := range pIdSlice {
+		conn := ngs.playerConn[pId]
 		if conn != nil {
 			sendConn = append(sendConn, conn)
 		}
@@ -98,7 +99,7 @@ func (ngs *NormalGameNetServer) Receive() (*gn.Mail, bool) {
 	return mail, ok
 }
 
-//DeleteConn player退出游戏的时候删除player和hero的联系方式
+//DeleteConn player退出游戏的时候删除player和hero的联系方式，不可以在游戏中间调用
 func (ngs *NormalGameNetServer) DeleteConn(hid, pid int32) {
 	ngs.lock.Lock()
 	defer ngs.lock.Unlock()

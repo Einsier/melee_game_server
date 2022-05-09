@@ -4,6 +4,7 @@ import (
 	"melee_game_server/api/hall"
 	gt "melee_game_server/internal/normal_game/game_type"
 	"sync"
+	"time"
 )
 
 /**
@@ -31,6 +32,21 @@ func (hm *HonorManager) AddPlayerHonor(pid int32) {
 	defer hm.mu.Unlock()
 
 	hm.honors[pid] = gt.NewPlayerHonor(pid)
+}
+
+func (hm *HonorManager) AddKill(pid int32) {
+	hm.mu.RLock()
+	defer hm.mu.RUnlock()
+	if honer, ok := hm.honors[pid]; ok {
+		honer.KillNum++
+	}
+}
+
+func (hm *HonorManager) SetAlive(pid int32, gameStartTime time.Time) {
+	hm.mu.RLock()
+	defer hm.mu.RUnlock()
+
+	hm.honors[pid].AliveTime = time.Now().Sub(gameStartTime).Nanoseconds()
 }
 
 //GetPlayerHonor 获取某个玩家的荣誉

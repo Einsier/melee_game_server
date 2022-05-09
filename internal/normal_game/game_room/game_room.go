@@ -107,11 +107,14 @@ func (room *NormalGameRoom) Start() {
 		aoi.TestGameMapWidth, aoi.TestGameMapHeight, aoi.TestGridWidth, aoi.TestGridHeight, 100*time.Millisecond, room.GetNetServer(), aoi.TestMapQT)*/
 	room.aoi = aoi.NewAOI(aoi.NewRandomHeroesInitInfo(configs.MaxNormalGamePlayerNum, configs.HeroMoveSpeed, aoi.NormalGameMapQt),
 		configs.MapWidth, configs.MapHeight, configs.GridWidth, configs.GridHeight, configs.FrameSyncSlice, room.GetNetServer(), aoi.NormalGameMapQt)
-	room.aoi.Work()
-	time.Sleep(20 * time.Millisecond)                                          //等待最后一个分配heroId的包到达
-	room.netServer.SendToAllPlayerConn(room.GetNormalGameStartBroadcastInfo()) //发消息通知所有的玩家游戏开始
-	room.Status = configs.NormalGameStartStatus
 
+	time.Sleep(20 * time.Millisecond) //等待最后一个分配heroId的包到达
+	//room.netServer.SendToAllPlayerConn(room.GetNormalGameStartBroadcastInfo()) //发消息通知所有的玩家游戏开始
+	//todo 做开始的包的删减
+	room.SendToAllPlayerInRoom(room.GetNormalGameStartBroadcastInfo())
+	room.Status = configs.NormalGameStartStatus
+	time.Sleep(20 * time.Millisecond)
+	room.aoi.Work()
 	//注册定时事件
 	room.GetTimeEventController().AddEvent(CheckHeartBeatTimeEvent)
 	room.GetTimeEventController().AddEvent(CleanOverTimeBulletTimeEvent)
@@ -119,12 +122,12 @@ func (room *NormalGameRoom) Start() {
 
 	//等待游戏结束
 	<-room.leave
+	time.Sleep(20 * time.Second)
+	room.aoi.Stop()
 	room.GetTimeEventController().Destroy()
 	room.Status = configs.NormalGameGameDestroyingStatus
 	room.EndTime = time.Now()
 	logger.Infof("room %d 所有玩家已经离开,准备进行清理工作", room.Id)
-	logger.Testf("room %d 所有玩家已经离开,准备进行清理工作", room.Id)
-	//todo 清理工作/持久化数据给数据库等
 
 	close(room.over) //通知本game_room已经结束
 }
@@ -177,6 +180,7 @@ func (room *NormalGameRoom) GetGameAccount() interface{} {
 }
 
 //DeletePlayer 删除一个游戏内的玩家,包括断开其连接,在各种manager中进行删除等,成功返回true,不成功返回false
+//删除英雄/玩家的唯一方式,有三种方式会导致玩家被删除:	1.玩家掉血死亡	2.玩家心跳过期	3.玩家自己退出
 func (room *NormalGameRoom) DeletePlayer(pid int32) bool {
 	pm := room.GetPlayerManager()
 	//获取用户信息状态,如果状态为已离开,不做处理,如果没有离开,则状态设为已离开并且判断是否所有玩家都离开
@@ -190,24 +194,57 @@ func (room *NormalGameRoom) DeletePlayer(pid int32) bool {
 	status := p.GetStatus()
 	if status == configs.PlayerLeaveGameStatus {
 		pm.LeaveLock.Unlock()
-		logger.Errorf("重复收到玩家离开消息,playerId:%d", pid)
+		//logger.Errorf("重复收到玩家离开消息,playerId:%d", pid)
 		return false
 	}
 
 	pm.GetPlayer(pid).SetStatus(configs.PlayerLeaveGameStatus)
 	pm.LeaveLock.Unlock()
 	n := atomic.AddInt32(&room.PlayerNum, -1)
+	if n == 0 {
+		return false
+	}
 	hid := pm.GetHeroId(pid)
 	room.aoi.RemoveHero(hid) //从aoi中删除该英雄
-	room.GetNetServer().DeleteConn(hid, pid)
+	//room.GetNetServer().DeleteConn(hid, pid)
 	pm.DeletePlayer(pm.GetPlayer(pid))
 	logger.Infof("room%d playerId为:%d,heroId为:%d的玩家已退出游戏,当前剩余%d人\n", room.Id, pid, hid, n)
 
 	//更新玩家荣誉信息
 	room.honorManager.GetPlayerHonor(pid).SetAliveTime(room.StartTime.UnixNano() - time.Now().UnixNano())
-	if n == 0 {
-		//如果所有玩家都已经退出,则通知game_room
+	if n <= 1 {
+		//如果当前场上只有一个玩家了,那么这个玩家是最终的胜利者,广播游戏结束报文,并且通知上层游戏结束
+		alivePlayer := room.GetAllPlayerIdInRoom()
+		for _, alivePlayerId := range alivePlayer {
+			//将剩余的那个玩家从aoi模块中删除,不同步消息了
+			if aliveHeroId := room.GetPlayerManager().GetHeroId(alivePlayerId); aliveHeroId != 0 {
+				room.aoi.RemoveHero(aliveHeroId)
+			}
+			//pm中删除
+			pm.DeletePlayer(pm.GetPlayer(alivePlayerId))
+		}
+		broad := &proto.GameOverBroadcast{}
+		room.SendToAllPlayerInRoom(codec.Encode(broad))
 		close(room.leave)
 	}
 	return true
+}
+
+//GetAllPlayerIdInRoom 获取当前还在房间中的玩家的id
+func (room *NormalGameRoom) GetAllPlayerIdInRoom() []int32 {
+	pm := room.GetPlayerManager()
+	pm.lock.RLock()
+	defer pm.lock.RUnlock()
+	ret := make([]int32, len(pm.players))
+	i := 0
+	for pid, _ := range pm.players {
+		ret[i] = pid
+		i++
+	}
+	return ret
+}
+
+func (room *NormalGameRoom) SendToAllPlayerInRoom(msg *proto.TopMessage) {
+	alivePlayer := room.GetAllPlayerIdInRoom()
+	room.GetNetServer().SendByPlayerId(alivePlayer, msg)
 }

@@ -77,8 +77,8 @@ func RefreshPropsTimeEventCallback(room *NormalGameRoom) {
 			PropPosition: &pb.Vector2{X: float32(X2), Y: float32(Y2)},
 			PropType:     pb.PropType_BulletPocketType,
 		})
-		room.GetNetServer().SendToAllPlayerConn(m1)
-		room.GetNetServer().SendToAllPlayerConn(m2)
+		room.SendToAllPlayerInRoom(m1)
+		room.SendToAllPlayerInRoom(m2)
 	}
 }
 

@@ -7,7 +7,7 @@ import (
 	"melee_game_server/framework/game_net/api"
 	"melee_game_server/internal/normal_game/aoi"
 	"melee_game_server/internal/normal_game/codec"
-	gt "melee_game_server/internal/normal_game/game_type"
+	//gt "melee_game_server/internal/normal_game/game_type"
 	"melee_game_server/plugins/logger"
 	"sync/atomic"
 	"time"
@@ -149,18 +149,25 @@ func HeroBulletLaunchRequestCallback(msg *api.Mail, room *NormalGameRoom) {
 	req := msg.Msg.Request.HeroBulletLaunchRequest
 	hid := req.HeroId
 	if room.Status == configs.NormalGameStartStatus {
-		position := entity.Vector2{X: req.Position.X, Y: req.Position.Y}
-		direction := entity.Vector2{X: req.Direction.X, Y: req.Direction.Y}
-		bullet := gt.NewBullet(hid, req.BulletIdByHero, req.LaunchTime, position, direction)
-		room.GetBulletsManager().AddBullets(bullet)
-		broadHeroes := room.heroManager.GetHeroesNearby(hid)
-		broad := codec.Encode(&pb.HeroBulletLaunchBroadcast{
-			BulletId:  gt.CountBulletId(hid, req.BulletIdByHero),
-			Position:  req.Position,
-			Direction: req.Direction,
-			Time:      req.LaunchTime,
-		})
-		room.GetNetServer().SendByHeroId(broadHeroes, broad)
+		launchMsg := &aoi.BulletLaunchMsg{
+			HeroId:    req.HeroId,
+			Position:  entity.NewVector2(req.Position.X, req.Position.Y),
+			Direction: entity.NewVector2(req.Direction.X, req.Direction.Y),
+			Time:      time.UnixMilli(req.LaunchTime),
+		}
+		room.aoi.PutBulletLaunchMsg(launchMsg)
+		//position := entity.Vector2{X: req.Position.X, Y: req.Position.Y}
+		//direction := entity.Vector2{X: req.Direction.X, Y: req.Direction.Y}
+		//bullet := gt.NewBullet(hid, req.BulletIdByHero, req.LaunchTime, position, direction)
+		//room.GetBulletsManager().AddBullets(bullet)
+		//broadHeroes := room.heroManager.GetHeroesNearby(hid)
+		//broad := codec.Encode(&pb.HeroBulletLaunchBroadcast{
+		//	BulletId:  gt.CountBulletId(hid, req.BulletIdByHero),
+		//	Position:  req.Position,
+		//	Direction: req.Direction,
+		//	Time:      req.LaunchTime,
+		//})
+		//room.GetNetServer().SendByHeroId(broadHeroes, broad)
 		return
 	}
 	logger.Errorf("[HeroBulletLaunchRequestCallback]在%d阶段收到了heroId:%d,的HeroBulletLaunchRequest!\n", room.Status, hid)
@@ -203,7 +210,7 @@ func HeroGetPropRequestCallback(msg *api.Mail, room *NormalGameRoom) {
 				return
 			}
 			if isChange {
-				room.netServer.SendToAllPlayerConn(codec.Encode(
+				room.SendToAllPlayerInRoom(codec.Encode(
 					&pb.HeroChangeHealthBroadcast{HeroId: hid, HeroHealth: newHealth}))
 			}
 		case pb.PropType_BulletPocketType:
@@ -218,34 +225,50 @@ func HeroGetPropRequestCallback(msg *api.Mail, room *NormalGameRoom) {
 
 func HeroBulletColliderHeroRequestCallback(msg *api.Mail, room *NormalGameRoom) {
 	req := msg.Msg.Request.HeroBulletColliderHeroRequest
-	hid := req.ColliderHeroId
-	bid := req.BulletId
+	pm := room.GetPlayerManager()
+	meId := req.HeroId
+	otherId := req.ColliderHeroId
+	//bid := req.BulletId
 	if room.Status == configs.NormalGameStartStatus {
-		if room.GetHeroesManager().GetHeroStatus(hid) != configs.HeroAlive {
-			//如果射击到的英雄已经狗带了,那么不做任何的反应,也不会删除子弹,即子弹应该穿过狗带的英雄
+		logger.Infof("hero%d 射击到了 hero%d", req.HeroId, req.ColliderHeroId)
+		if otherPlayer := pm.GetPlayer(pm.GetPlayerId(otherId)); otherPlayer == nil {
+			//如果射击到的英雄不合法,那么不做任何处理
+			logger.Errorf("射击到的目标不合法!")
 			return
+		} else {
+			if room.GetHeroesManager().GetHeroStatus(otherId) != configs.HeroAlive {
+				//如果射击到的英雄已经狗带了,那么不做任何的反应,也不会删除子弹,即子弹应该穿过狗带的英雄
+				logger.Errorf("射击到的目标已经狗带了!")
+				return
+			}
+			isChange, isDead, newHealth := room.GetHeroesManager().GetHero(otherId).ChangeHeath(-10)
+			if isChange {
+				//广播血量变化信息
+				room.SendToAllPlayerInRoom(codec.Encode(&pb.HeroChangeHealthBroadcast{HeroId: otherId, HeroHealth: newHealth}))
+			}
+			if isDead {
+				//击杀者增加荣誉
+				if mePlayerId := room.GetPlayerManager().GetPlayerId(meId); mePlayerId != 0 {
+					room.honorManager.AddKill(mePlayerId)
+				}
+				//删除掉死亡的玩家
+				room.DeletePlayer(otherId)
+				//广播死亡信息
+				room.SendToAllPlayerInRoom(codec.Encode(&pb.HeroDeadBroadcast{HeroId: otherId}))
+			}
 		}
-
-		heroPosition := room.heroManager.GetHeroPosition(hid)
-		ok := room.GetBulletsManager().CheckBulletHitHero(bid, heroPosition)
-		if !ok {
-			//如果当前射击无效,则应该直接返回,不删除子弹
-			return
-		}
-		room.GetBulletsManager().DeleteBullets(bid)
-		room.netServer.SendToAllPlayerConn(codec.Encode(&pb.HeroBulletDestroyBroadcast{BulletId: bid}))
+		//heroPosition := room.heroManager.GetHeroPosition(hid)
+		//ok := room.GetBulletsManager().CheckBulletHitHero(bid, heroPosition)
+		//if !ok {
+		//	//如果当前射击无效,则应该直接返回,不删除子弹
+		//	return
+		//}
+		//room.GetBulletsManager().DeleteBullets(bid)
+		//room.netServer.SendToAllPlayerConn(codec.Encode(&pb.HeroBulletDestroyBroadcast{BulletId: bid}))
 		//被击中的玩家扣血
-		isChange, isDead, newHealth := room.GetHeroesManager().GetHero(hid).ChangeHeath(-1)
-		if isChange {
-			room.netServer.SendToAllPlayerConn(codec.Encode(
-				&pb.HeroChangeHealthBroadcast{HeroId: hid, HeroHealth: newHealth}))
-		}
-		if isDead {
-			room.netServer.SendToAllPlayerConn(codec.Encode(
-				&pb.HeroDeadBroadcast{HeroId: hid}))
-		}
+
 	}
-	logger.Errorf("[HeroBulletColliderHeroRequestCallback]在%d阶段收到了heroId:%d,的HeroBulletColliderHeroRequest\n", room.Status, bid>>32)
+	//logger.Errorf("[HeroBulletColliderHeroRequestCallback]在%d阶段收到了heroId:%d,的HeroBulletColliderHeroRequest\n", room.Status, bid>>32)
 }
 
 func PlayerHeartBeatRequestCallback(msg *api.Mail, room *NormalGameRoom) {

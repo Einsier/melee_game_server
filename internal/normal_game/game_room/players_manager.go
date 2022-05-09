@@ -102,15 +102,16 @@ func (pm *PlayersManager) AddPlayer(p *gt.Player) {
 	pm.players[p.Id] = p
 }
 
-//DeletePlayer 删除一个玩家
-func (pm *PlayersManager) DeletePlayer(p *gt.Player) {
+//DeletePlayer 删除一个玩家,返回当前还剩多少玩家
+func (pm *PlayersManager) DeletePlayer(p *gt.Player) int {
 	pm.lock.Lock()
 	defer pm.lock.Unlock()
 	if p == nil {
 		logger.Errorf("[DeletePlayer]删除空玩家\n")
-		return
+	} else {
+		delete(pm.players, p.Id)
 	}
-	delete(pm.players, p.Id)
+	return len(pm.players)
 }
 
 //UpdateHeartBeatTime 更新id为pid的玩家的心跳时间,t为unixNano的int64

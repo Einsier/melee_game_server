@@ -9,6 +9,8 @@ spec:
   ports:
     - port: 32004
       targetPort: 8000
+    - port: 8080
+      targetPort: 8080
   selector:
     app: game-server
   clusterIP: None
@@ -36,8 +38,10 @@ spec:
           image: melee-game-game-server
           imagePullPolicy: Always
           ports:
-            - containerPort: 8000
+            - containerPort: 8000 # hall to gs
               protocol: TCP
-            - containerPort: 8001
+            - containerPort: 8001 # client to gs
+              protocol: TCP
+            - containerPort: 8080 # metrics
               protocol: TCP
       restartPolicy: Always

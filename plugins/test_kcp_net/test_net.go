@@ -21,16 +21,16 @@ func NewTestKcpNet() TestKcpNet {
 }
 
 func (t *TestKcpNet) Init(port string, recvSize, sendSize uint32) {
-	logger.Test("test kcp net init success.")
+	// logger.Test("test kcp net init success.")
 }
 
 func (t *TestKcpNet) Start() error {
-	logger.Test("test kcp net start success.")
+	// logger.Test("test kcp net start success.")
 	return nil
 }
 
 func (t *TestKcpNet) Receive() *api.Mail {
-	logger.Test("this should not be called")
+	// logger.Test("this should not be called")
 	return nil
 }
 

@@ -13,8 +13,8 @@ const (
 	HeroDead         //英雄死亡
 )
 
-const HeroMaxHealth = 20  //最大血量
-const HeroInitHealth = 20 //初始血量
+const HeroMaxHealth = 100  //最大血量
+const HeroInitHealth = 100 //初始血量
 
 const (
 	HeroColliderX     = float32(1)        //Ruby的碰撞宽度

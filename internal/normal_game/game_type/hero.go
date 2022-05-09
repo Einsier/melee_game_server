@@ -99,7 +99,9 @@ func (h *Hero) ChangeHeath(heath int32) (isChange, isDead bool, newHealth int32)
 		newHealth = 0
 		h.status = configs.HeroDead
 		isDead = true
+		return
 	}
+	h.Health = newHealth
 	return
 }
 

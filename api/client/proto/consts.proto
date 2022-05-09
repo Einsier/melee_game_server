@@ -50,6 +50,7 @@ enum BroadcastCode{
     GameStartBroadcastCode              = 7;       //通知全部玩家游戏开始
     HeroDeadBroadcastCode               = 8;       //通知全部玩家某个玩家死亡
     HeroBulletDestroyBroadcastCode      = 9;       //通知全部玩家某个子弹消失
+    GameOverBroadcastCode               = 10;       //通知当前玩家游戏结束
 }
 
 //个人发现如果发送的信息的某个字段的枚举类型为0,则会忽略发送这个字段...不知道会不会是伏笔

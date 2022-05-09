@@ -131,6 +131,14 @@ func Encode(msg interface{}) *proto.TopMessage {
 		topMsg.TopMessageType = proto.TopMessageType_BroadcastType
 		topMsg.Broadcast = &broadcast
 		return topMsg
+	case *proto.GameOverBroadcast:
+		broadcast := proto.Broadcast{
+			BroadcastCode:     proto.BroadcastCode_GameOverBroadcastCode,
+			GameOverBroadcast: msg.(*proto.GameOverBroadcast),
+		}
+		topMsg.TopMessageType = proto.TopMessageType_BroadcastType
+		topMsg.Broadcast = &broadcast
+		return topMsg
 	default:
 		logger.TestErrf("收到了错误的译码请求,%T不是可正确译码的类型", msg)
 	}

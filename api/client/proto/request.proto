@@ -46,8 +46,8 @@ message HeroBulletLaunchRequest{
     int32          heroId = 1;          //保留,用于校验英雄发射子弹合法性
     Vector2        position = 2;
     Vector2        direction = 3;
-    int32          bulletIdByHero = 4;
-    int64          launchTime = 5;
+    //int32          bulletIdByHero = 4;
+    int64          launchTime = 4;
 }
 
 message HeroSwordAttackRequest{

@@ -33,6 +33,7 @@ type TimeEventController struct {
 	addPipe           chan *TimeEvent //存放要加入的timeEvent
 	cancelPipe        chan int32      //存放要取消的timeEvent的编号
 	timeEventCloseMap sync.Map        //key为event的int32类型的id,value为chan interface{}
+	cancel            chan struct{}   //防止go程泄露
 	room              *NormalGameRoom
 }
 
@@ -43,6 +44,7 @@ func NewTimeEventController(room *NormalGameRoom) *TimeEventController {
 		cancelPipe:        make(chan int32),
 		timeEventCloseMap: sync.Map{},
 		room:              room,
+		cancel:            make(chan struct{}),
 	}
 	go c.manageEventPipe()
 	return c
@@ -77,6 +79,8 @@ func (c *TimeEventController) manageEventPipe() {
 				close(closer.(chan interface{}))
 				c.timeEventCloseMap.Delete(id)
 			}
+		case <-c.cancel:
+			return
 		}
 	}
 }
@@ -99,4 +103,5 @@ func (c *TimeEventController) Destroy() {
 		c.CancelEvent(id.(int32))
 		return true
 	})
+	close(c.cancel)
 }

@@ -176,7 +176,7 @@ func (aoi *AOI) Work() {
 						HeroId:           hero.Id,
 						HeroMovementType: entity.V2toToHeroMovementType[hero.direction],
 						HeroPosition:     hero.position.ToProto(),
-						Time:             hero.updateTime.UnixMilli(),
+						Time:             time.Now().UnixMilli(),
 					}
 				}
 				for _, me := range aoi.Heroes {

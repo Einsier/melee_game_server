@@ -51,7 +51,7 @@ func ParseFlags() {
 		if id, err := strconv.Atoi(sp[len(sp)-1]); err != nil {
 			log.Fatalf("HOSTNAME不正确,hostname:%s", hostname)
 		} else {
-			*clientTcpAddrFlag = "ustc-meleegame.cn:" + strconv.Itoa(33000+id)
+			*clientTcpAddrFlag = "49.234.245.172:" + strconv.Itoa(33000+id)
 		}
 	}
 }

@@ -5,6 +5,7 @@ import (
 	"log"
 	"melee_game_server/configs"
 	"melee_game_server/configs/normal_game_type_configs"
+	"melee_game_server/internal/normal_game/metrics"
 	"melee_game_server/plugins/logger"
 	"melee_game_server/server"
 	"os"
@@ -62,6 +63,7 @@ func main() {
 	configs.EtcdAddr = *etcdAddrFlag
 	normal_game_type_configs.MaxNormalGamePlayerNum = int32(*playerNumFlag)
 	server.EtcdCli = server.NewEtcdCli()
+	go metrics.Start()
 	server.GS.Run()
 	logger.Infof("开启game server:大厅服务器rpc端口[%s],客户端kcp地址[%s]\n", *hallRpcPortFlag, *clientTcpAddrFlag)
 	time.Sleep(1000000 * time.Minute)

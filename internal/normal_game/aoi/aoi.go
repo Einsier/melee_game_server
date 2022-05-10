@@ -183,8 +183,11 @@ func (aoi *AOI) Work() {
 					//将当前hero视野中的全部英雄的topMsg的指针放到view中,把view传给网络模块进行发送
 					meMap := make(map[int32]*proto.HeroMovementChangeBroadcast)
 					for otherId := range me.View {
-						if meMap[otherId] = m[otherId]; meMap[otherId] == nil {
-							panic("!!!!!")
+						//只有需要被广播的报文才发送
+						if aoi.Heroes[otherId].NeedBroad {
+							if meMap[otherId] = m[otherId]; meMap[otherId] == nil {
+								panic("!!!!!")
+							}
 						}
 					}
 					meMap[me.Id] = m[me.Id]
@@ -192,6 +195,10 @@ func (aoi *AOI) Work() {
 						aoi.gn.SendByHeroId([]int32{me.Id}, codec.EncodeUnicast(&proto.HeroFrameSyncUnicast{Movement: meMap}))
 					} else {
 						logger.Testf("send to hero:%d,map:%v", me.Id, meMap)
+					}
+					for _, h := range aoi.Heroes {
+						//重置每个英雄的NeedBroad字段
+						h.NeedBroad = false
 					}
 				}
 			case moveMsg = <-aoi.Move:

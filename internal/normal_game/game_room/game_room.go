@@ -10,7 +10,9 @@ import (
 	"melee_game_server/internal/normal_game/codec"
 	gn "melee_game_server/internal/normal_game/game_net"
 	gt "melee_game_server/internal/normal_game/game_type"
+	"melee_game_server/internal/normal_game/metrics"
 	"melee_game_server/plugins/logger"
+	"strconv"
 	"sync/atomic"
 	"time"
 )
@@ -201,6 +203,7 @@ func (room *NormalGameRoom) DeletePlayer(pid int32) bool {
 	pm.GetPlayer(pid).SetStatus(configs.PlayerLeaveGameStatus)
 	pm.LeaveLock.Unlock()
 	n := atomic.AddInt32(&room.PlayerNum, -1)
+	metrics.GaugeVecGameRoomPlayerCount.WithLabelValues(strconv.Itoa(int(room.Id))).Dec()
 	if n == 0 {
 		return false
 	}
@@ -222,6 +225,7 @@ func (room *NormalGameRoom) DeletePlayer(pid int32) bool {
 			}
 			//pm中删除
 			pm.DeletePlayer(pm.GetPlayer(alivePlayerId))
+			metrics.GaugeVecGameRoomPlayerCount.WithLabelValues(strconv.Itoa(int(room.Id))).Set(0)
 		}
 		broad := &proto.GameOverBroadcast{}
 		room.SendToAllPlayerInRoom(codec.Encode(broad))

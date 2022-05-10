@@ -190,6 +190,9 @@ func (aoi *AOI) Work() {
 							}
 						}
 					}
+					if len(meMap) != 0 {
+						logger.Infof("给玩家%d发送了%v的信息", me.Id, meMap)
+					}
 					meMap[me.Id] = m[me.Id]
 					if aoi.gn != nil {
 						aoi.gn.SendByHeroId([]int32{me.Id}, codec.EncodeUnicast(&proto.HeroFrameSyncUnicast{Movement: meMap}))

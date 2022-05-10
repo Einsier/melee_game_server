@@ -6,6 +6,7 @@ import (
 	"melee_game_server/internal/normal_game/aoi/collision"
 	"melee_game_server/internal/normal_game/codec"
 	"melee_game_server/internal/normal_game/game_net"
+	"melee_game_server/plugins/logger"
 	"strconv"
 	"time"
 )
@@ -63,6 +64,7 @@ func NewHero(id int32, position, direction entity.Vector2, speed float32, aoi *A
 		aoi:        aoi,
 		View:       map[int32]struct{}{},
 		updateTime: time.Now(),
+		NeedBroad:  true,
 	}
 }
 
@@ -235,7 +237,8 @@ func (h *Hero) UpdateMovement(info *HeroMoveMsg, gn *game_net.NormalGameNetServe
 							h.aoi.Heroes[id].View[h.Id] = struct{}{}
 							//将joinGrid中的英雄的可见英雄中加入本英雄
 							h.View[id] = struct{}{}
-							//logger.Infof("[%d][%d]进入了彼此的视野", id, h.Id)
+							h.aoi.Heroes[id].NeedBroad = true
+							logger.Infof("[%d][%d]进入了彼此的视野", id, h.Id)
 						}
 					}
 				}

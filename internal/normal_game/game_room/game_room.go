@@ -217,6 +217,8 @@ func (room *NormalGameRoom) DeletePlayer(pid int32) bool {
 	room.honorManager.GetPlayerHonor(pid).SetAliveTime(room.StartTime.UnixNano() - time.Now().UnixNano())
 	if n <= 1 {
 		//如果当前场上只有一个玩家了,那么这个玩家是最终的胜利者,广播游戏结束报文,并且通知上层游戏结束
+		broad := &proto.GameOverBroadcast{}
+		room.SendToAllPlayerInRoom(codec.Encode(broad))
 		alivePlayer := room.GetAllPlayerIdInRoom()
 		for _, alivePlayerId := range alivePlayer {
 			//将剩余的那个玩家从aoi模块中删除,不同步消息了
@@ -227,8 +229,6 @@ func (room *NormalGameRoom) DeletePlayer(pid int32) bool {
 			pm.DeletePlayer(pm.GetPlayer(alivePlayerId))
 			metrics.GaugeVecGameRoomPlayerCount.WithLabelValues(strconv.Itoa(int(room.Id))).Set(0)
 		}
-		broad := &proto.GameOverBroadcast{}
-		room.SendToAllPlayerInRoom(codec.Encode(broad))
 		close(room.leave)
 	}
 	return true

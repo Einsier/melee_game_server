@@ -221,7 +221,9 @@ func (room *NormalGameRoom) DeletePlayer(pid int32) bool {
 		broad := &proto.GameOverBroadcast{}
 		room.SendToAllPlayerInRoom(codec.Encode(broad))
 		alivePlayer := room.GetAllPlayerIdInRoom()
-		logger.Infof("胜利者是:hero%d", alivePlayer)
+		if len(alivePlayer) == 1 {
+			logger.Infof("胜利者是:player%d", alivePlayer[0])
+		}
 		for _, alivePlayerId := range alivePlayer {
 			//将剩余的那个玩家从aoi模块中删除,不同步消息了
 			if aliveHeroId := room.GetPlayerManager().GetHeroId(alivePlayerId); aliveHeroId != 0 {

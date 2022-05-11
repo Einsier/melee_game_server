@@ -98,6 +98,8 @@ func CheckHeartBeatTimeEventCallback(room *NormalGameRoom) {
 	for i := 0; i < aliveNum; i++ {
 		if alivePlayer[i].GetHeartBeatTime().Before(overTime) {
 			logger.Infof("玩家%d已经掉线,将其删除\n", alivePlayer[i].Id)
+			//如果玩家掉线,同样发送死亡报文,并且删除玩家.
+			room.SendToAllPlayerInRoom(codec.Encode(&pb.HeroDeadBroadcast{HeroId: room.GetPlayerManager().GetHeroId(alivePlayer[i].Id)}))
 			room.DeletePlayer(alivePlayer[i].Id)
 		}
 	}

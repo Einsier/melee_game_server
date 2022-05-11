@@ -98,10 +98,12 @@ func (h *Hero) ChangeHeath(heath int32) (isChange, isDead bool, newHealth int32)
 	if newHealth <= 0 {
 		newHealth = 0
 		h.status = configs.HeroDead
+		h.Health = newHealth
 		isDead = true
 		return
 	}
 	h.Health = newHealth
+	isDead = false
 	return
 }
 

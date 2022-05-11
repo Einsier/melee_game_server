@@ -148,7 +148,7 @@ func (aoi *AOI) UpdateHeroPosition(info *HeroMoveMsg) {
 	hero := aoi.Heroes[info.Id]
 
 	if hero == nil {
-		logger.Errorf("aoi收到了不存在的英雄位置更新信息:hero num:%d", info.Id)
+		//logger.Errorf("aoi收到了不存在的英雄位置更新信息:hero num:%d", info.Id)
 		return
 	}
 	hero.UpdateMovement(info, aoi.gn)
@@ -197,7 +197,7 @@ func (aoi *AOI) Work(startTime time.Time) {
 					if aoi.gn != nil {
 						aoi.gn.SendByHeroId([]int32{me.Id}, codec.EncodeUnicast(&proto.HeroFrameSyncUnicast{Movement: meMap}))
 					} else {
-						logger.Testf("send to hero:%d,map:%v", me.Id, meMap)
+						//logger.Testf("send to hero:%d,map:%v", me.Id, meMap)
 					}
 					//for _, h := range aoi.Heroes {
 					//	//重置每个英雄的NeedBroad字段
@@ -207,7 +207,7 @@ func (aoi *AOI) Work(startTime time.Time) {
 			case moveMsg = <-aoi.Move:
 				hero, ok = aoi.Heroes[moveMsg.Id]
 				if !ok {
-					logger.Errorf("收到了已经退出/不存在的heroId:%d", moveMsg.Id)
+					//logger.Errorf("收到了已经退出/不存在的heroId:%d", moveMsg.Id)
 					continue
 				} else {
 					hero.UpdateMovement(moveMsg, aoi.gn)

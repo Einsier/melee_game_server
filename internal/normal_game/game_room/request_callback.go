@@ -103,6 +103,10 @@ func PlayerQuitGameRequestCallback(msg *api.Mail, room *NormalGameRoom) {
 	req := msg.Msg.Request.PlayerQuitGameRequest
 	if room.Status == configs.NormalGameStartStatus {
 		ok := room.DeletePlayer(req.PlayerId)
+		if ok {
+			//如果玩家按下esc键退出游戏,发送hero dead报文通知其他玩家
+			room.SendToAllPlayerInRoom(codec.Encode(&pb.HeroDeadBroadcast{HeroId: room.GetPlayerManager().GetHeroId(req.HeroId)}))
+		}
 		resp.Success = ok
 		room.GetNetServer().SendBySingleConn(msg.Conn, codec.Encode(&resp))
 		return

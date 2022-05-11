@@ -125,7 +125,7 @@ func (grm *GameRoomManger) PutMsg(roomId int32, mail *api.Mail) {
 	//这里加读锁锁住关闭管道
 	room, ok := grm.gameRooms[roomId]
 	if !ok {
-		logger.Errorf("收到了不存在房间的信息,roomId:%d\n", roomId)
+		//logger.Errorf("收到了不存在房间的信息,roomId:%d\n", roomId)
 		return
 	}
 	room.PutMsg(mail)

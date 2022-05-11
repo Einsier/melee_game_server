@@ -140,7 +140,7 @@ func Encode(msg interface{}) *proto.TopMessage {
 		topMsg.Broadcast = &broadcast
 		return topMsg
 	default:
-		logger.TestErrf("收到了错误的译码请求,%T不是可正确译码的类型", msg)
+		logger.Errorf("收到了错误的译码请求,%T不是可正确译码的类型", msg)
 	}
 	return nil
 }

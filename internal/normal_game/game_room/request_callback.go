@@ -153,7 +153,12 @@ func HeroMovementChangeRequestCallback(msg *api.Mail, room *NormalGameRoom) {
 func HeroBulletLaunchRequestCallback(msg *api.Mail, room *NormalGameRoom) {
 	req := msg.Msg.Request.HeroBulletLaunchRequest
 	hid := req.HeroId
+	pm := room.GetPlayerManager()
 	if room.Status == configs.NormalGameStartStatus {
+		if pm.GetPlayer(pm.GetPlayerId(req.HeroId)) == nil {
+			logger.Errorf("收到了阵亡的hero%d的子弹发射报文", hid)
+			return
+		}
 		launchMsg := &aoi.BulletLaunchMsg{
 			HeroId:    req.HeroId,
 			Position:  entity.NewVector2(req.Position.X, req.Position.Y),
@@ -256,10 +261,10 @@ func HeroBulletColliderHeroRequestCallback(msg *api.Mail, room *NormalGameRoom) 
 				if mePlayerId := room.GetPlayerManager().GetPlayerId(meId); mePlayerId != 0 {
 					room.honorManager.AddKill(mePlayerId)
 				}
-				//删除掉死亡的玩家
-				room.DeletePlayer(otherId)
 				//广播死亡信息
 				room.SendToAllPlayerInRoom(codec.Encode(&pb.HeroDeadBroadcast{HeroId: otherId}))
+				//删除掉死亡的玩家
+				room.DeletePlayer(pm.GetPlayerId(otherId))
 			}
 		}
 		//heroPosition := room.heroManager.GetHeroPosition(hid)

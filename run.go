@@ -9,6 +9,7 @@ import (
 	"melee_game_server/plugins/logger"
 	"melee_game_server/server"
 	"os"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -30,6 +31,8 @@ var playerNumFlag = flag.Int("playerNum", 2, "configs the number of players in e
 var showTcpMsg = flag.Bool("msg", false, "whether to display Tcp messages receive from clients/send to clients")
 
 func ParseFlags() {
+	n := runtime.NumCPU()
+	runtime.GOMAXPROCS(n)
 	flag.Parse()
 	configs.ShowTcpMsg = *showTcpMsg
 	if *testFlag {

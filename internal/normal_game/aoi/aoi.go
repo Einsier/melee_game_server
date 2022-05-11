@@ -155,7 +155,7 @@ func (aoi *AOI) UpdateHeroPosition(info *HeroMoveMsg) {
 }
 
 //Work aoi模块开始工作,每秒12帧的发送位置信息,注意一定是初始化了所有玩家的net.Conn才可以执行
-func (aoi *AOI) Work() {
+func (aoi *AOI) Work(startTime time.Time) {
 	ticker := time.NewTicker(aoi.UpdateDuration)
 	go func() {
 		var quitMsg *HeroQuitMsg
@@ -176,7 +176,7 @@ func (aoi *AOI) Work() {
 						HeroId:           hero.Id,
 						HeroMovementType: entity.V2toToHeroMovementType[hero.direction],
 						HeroPosition:     hero.position.ToProto(),
-						Time:             hero.updateTime.UnixMilli(),
+						Time:             hero.updateTime.Sub(startTime).Milliseconds(),
 					}
 				}
 				for _, me := range aoi.Heroes {
@@ -184,25 +184,25 @@ func (aoi *AOI) Work() {
 					meMap := make(map[int32]*proto.HeroMovementChangeBroadcast)
 					for otherId := range me.View {
 						//只有需要被广播的报文才发送
-						if aoi.Heroes[otherId].NeedBroad {
-							if meMap[otherId] = m[otherId]; meMap[otherId] == nil {
-								panic("!!!!!")
-							}
+						//if aoi.Heroes[otherId].NeedBroad {
+						if meMap[otherId] = m[otherId]; meMap[otherId] == nil {
+							panic("!!!!!")
 						}
+						//}
 					}
-					if len(meMap) != 0 {
-						logger.Infof("给玩家%d发送了%v的信息", me.Id, meMap)
-					}
+					//if len(meMap) != 0 {
+					//	logger.Infof("给玩家%d发送了%v的信息", me.Id, meMap)
+					//}
 					meMap[me.Id] = m[me.Id]
 					if aoi.gn != nil {
 						aoi.gn.SendByHeroId([]int32{me.Id}, codec.EncodeUnicast(&proto.HeroFrameSyncUnicast{Movement: meMap}))
 					} else {
 						logger.Testf("send to hero:%d,map:%v", me.Id, meMap)
 					}
-					for _, h := range aoi.Heroes {
-						//重置每个英雄的NeedBroad字段
-						h.NeedBroad = false
-					}
+					//for _, h := range aoi.Heroes {
+					//	//重置每个英雄的NeedBroad字段
+					//	h.NeedBroad = false
+					//}
 				}
 			case moveMsg = <-aoi.Move:
 				hero, ok = aoi.Heroes[moveMsg.Id]
@@ -228,7 +228,8 @@ func (aoi *AOI) Work() {
 					HeroId:    bulletMsg.HeroId,
 					Position:  bulletMsg.Position.ToProto(),
 					Direction: bulletMsg.Direction.ToProto(),
-					Time:      time.Now().UnixMilli(),
+					//Time:      bulletMsg.Time.UnixMilli(),
+					Time: time.Now().Sub(startTime).Milliseconds(),
 				}
 				msg := codec.Encode(broad)
 				otherHeroSli := make([]int32, len(aoi.Heroes[bulletMsg.HeroId].View))

@@ -6,7 +6,6 @@ import (
 	"melee_game_server/internal/normal_game/aoi/collision"
 	"melee_game_server/internal/normal_game/codec"
 	"melee_game_server/internal/normal_game/game_net"
-	"melee_game_server/plugins/logger"
 	"strconv"
 	"time"
 )
@@ -32,7 +31,7 @@ type Hero struct {
 	speed      float32
 	aoi        *AOI
 	View       map[int32]struct{} //能看到的英雄
-	NeedBroad  bool               //是否需要状态同步
+	//NeedBroad  bool               //是否需要状态同步
 }
 
 func (h *Hero) VisibleHeroes() []int32 {
@@ -64,7 +63,7 @@ func NewHero(id int32, position, direction entity.Vector2, speed float32, aoi *A
 		aoi:        aoi,
 		View:       map[int32]struct{}{},
 		updateTime: time.Now(),
-		NeedBroad:  true,
+		//NeedBroad:  true,
 	}
 }
 
@@ -83,24 +82,23 @@ func (h *Hero) UpdateMovement(info *HeroMoveMsg, gn *game_net.NormalGameNetServe
 			X: h.position.X + float32(timeSpace)*h.speed*info.Direction.X,
 			Y: h.position.Y + float32(timeSpace)*h.speed*info.Direction.Y,
 		}
-	} else if info.Position == entity.Vector2Zero {
-		//todo:测试用,只改变方向,让服务器计算当前的位置(本来该由前端做,服务器校验)
+	} else {
+		//如果是从客户端发过来的运动改变,那么需要在下一帧进行广播
 		info.Position = entity.Vector2{
 			//运算逻辑:
 			//新位置X= 旧位置X	+ 更新间隔(单位ms)	*英雄移动速度 * 英雄移动方向的X(取值为1/0/-1)
 			X: h.position.X + float32(info.Time.Sub(h.updateTime).Milliseconds())*h.speed*h.direction.X,
 			Y: h.position.Y + float32(info.Time.Sub(h.updateTime).Milliseconds())*h.speed*h.direction.Y,
 		}
-	} else {
-		//如果是从客户端发过来的运动改变,那么需要在下一帧进行广播
-		h.NeedBroad = true
+		h.updateTime = info.Time
+		//h.NeedBroad = true
 	}
 	//现在info中存放的是希望走的位置,h.position是英雄原来的位置,应该做碰撞校验,判断英雄到现在的位置是否合法,如果合法,那么进行到下一步,更新九宫格
 	//如果不合法,那么只是更新updateTime和,不改变h.position,这样相当于将英雄退回到上一帧的位置.
 	if h.aoi.qt.CheckCollision(collision.NewRubyCollisionCheckRectangle(h.Name, &h.position, &info.Position)) {
 		//发生碰撞让玩家停下
 		//如果玩家位置发生了碰撞,需要广播,因为碰撞检测是由服务器判断的
-		h.NeedBroad = true
+		//h.NeedBroad = true
 		h.direction = entity.Vector2Zero
 		h.updateTime = info.Time
 		return
@@ -139,7 +137,7 @@ func (h *Hero) UpdateMovement(info *HeroMoveMsg, gn *game_net.NormalGameNetServe
 			//2.把玩家加入到to中
 			//logger.Infof("[hero:%d]position:%+v->%+v,grid:[%d][%d]->[%d][%d]", h.Id, &h.position, &info.Position, h.at.YIdx, h.at.XIdx, to.YIdx, to.XIdx)
 			//如果是从一个格子到另一个格子,需要广播
-			h.NeedBroad = true
+			//h.NeedBroad = true
 			delete(h.at.Objs, h.Id)
 			to.Objs[h.Id] = struct{}{}
 			//3.判断to和at的关系,有可能有以下情况:
@@ -237,8 +235,8 @@ func (h *Hero) UpdateMovement(info *HeroMoveMsg, gn *game_net.NormalGameNetServe
 							h.aoi.Heroes[id].View[h.Id] = struct{}{}
 							//将joinGrid中的英雄的可见英雄中加入本英雄
 							h.View[id] = struct{}{}
-							h.aoi.Heroes[id].NeedBroad = true
-							logger.Infof("[%d][%d]进入了彼此的视野", id, h.Id)
+							//h.aoi.Heroes[id].NeedBroad = true
+							//logger.Infof("[%d][%d]进入了彼此的视野", id, h.Id)
 						}
 					}
 				}
@@ -250,7 +248,7 @@ func (h *Hero) UpdateMovement(info *HeroMoveMsg, gn *game_net.NormalGameNetServe
 	} else {
 		//如果越界,那么同样将玩家的direction改成zero
 		h.direction = entity.Vector2Zero
-		h.NeedBroad = true
+		//h.NeedBroad = true
 	}
 	h.updateTime = info.Time
 }

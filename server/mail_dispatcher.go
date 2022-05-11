@@ -3,7 +3,6 @@ package server
 import (
 	"fmt"
 	"melee_game_server/configs"
-	"melee_game_server/plugins/logger"
 )
 
 /**
@@ -18,7 +17,7 @@ func (gs *GameServer) DispatchMail() {
 	for {
 		mail := gs.Net.Receive()
 		if mail.Msg == nil || mail.Msg.Request == nil {
-			logger.Errorf("Dispatcher receive empty msg from:%s", mail.Conn.RemoteAddr())
+			//logger.Errorf("Dispatcher receive empty msg from:%s", mail.Conn.RemoteAddr())
 			continue
 		}
 		if configs.ShowTcpMsg {

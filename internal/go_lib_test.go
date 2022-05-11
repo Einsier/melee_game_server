@@ -99,7 +99,15 @@ func TestAtomic(t *testing.T) {
 	}
 	time.Sleep(1 * time.Second)
 }
-
+func TestTick(t *testing.T) {
+	ticker := time.NewTicker(3 * time.Second)
+	for {
+		select {
+		case <-ticker.C:
+			fmt.Printf("%v\n", "abc")
+		}
+	}
+}
 func TestAtomic2(t *testing.T) {
 	target := int32(0)
 	m := sync.Map{}

@@ -102,7 +102,6 @@ func (room *NormalGameRoom) Start() {
 	go room.requestController.Work2(room)
 	<-room.Prepare
 	logger.Infof("room:%d 所有玩家准备就绪,开始游戏", room.Id)
-	room.StartTime = time.Now()
 	//代码执行到这里,所有的玩家都已经准备好
 	//todo 将测试地图改成真实的地图
 	/*	room.aoi = aoi.NewAOI(aoi.NewRandomHeroesInitInfo(configs.MaxNormalGamePlayerNum, aoi.TestHeroSpeed, aoi.TestMapQT),
@@ -115,8 +114,9 @@ func (room *NormalGameRoom) Start() {
 	//todo 做开始的包的删减
 	room.SendToAllPlayerInRoom(room.GetNormalGameStartBroadcastInfo())
 	room.Status = configs.NormalGameStartStatus
-	time.Sleep(20 * time.Millisecond)
-	room.aoi.Work()
+	time.Sleep(300 * time.Millisecond)
+	room.StartTime = time.Now()
+	room.aoi.Work(room.StartTime)
 	//注册定时事件
 	room.GetTimeEventController().AddEvent(CheckHeartBeatTimeEvent)
 	room.GetTimeEventController().AddEvent(CleanOverTimeBulletTimeEvent)
@@ -190,7 +190,7 @@ func (room *NormalGameRoom) DeletePlayer(pid int32) bool {
 	pm.LeaveLock.Lock()
 	if p == nil {
 		pm.LeaveLock.Unlock()
-		logger.Errorf("出现不属于本房间的玩家发送退出请求!playerId:%d", pid)
+		//logger.Errorf("出现不属于本房间的玩家发送退出请求!playerId:%d", pid)
 		return false
 	}
 	status := p.GetStatus()
@@ -202,11 +202,12 @@ func (room *NormalGameRoom) DeletePlayer(pid int32) bool {
 
 	pm.GetPlayer(pid).SetStatus(configs.PlayerLeaveGameStatus)
 	pm.LeaveLock.Unlock()
-	n := atomic.AddInt32(&room.PlayerNum, -1)
-	metrics.GaugeVecGameRoomPlayerCount.WithLabelValues(strconv.Itoa(int(room.Id))).Dec()
-	if n == 0 {
+	before := atomic.LoadInt32(&room.PlayerNum)
+	if before <= 1 {
 		return false
 	}
+	n := atomic.AddInt32(&room.PlayerNum, -1)
+	metrics.GaugeVecGameRoomPlayerCount.WithLabelValues(strconv.Itoa(int(room.Id))).Dec()
 	hid := pm.GetHeroId(pid)
 	room.aoi.RemoveHero(hid) //从aoi中删除该英雄
 	//room.GetNetServer().DeleteConn(hid, pid)
@@ -220,6 +221,7 @@ func (room *NormalGameRoom) DeletePlayer(pid int32) bool {
 		broad := &proto.GameOverBroadcast{}
 		room.SendToAllPlayerInRoom(codec.Encode(broad))
 		alivePlayer := room.GetAllPlayerIdInRoom()
+		logger.Infof("胜利者是:hero%d", alivePlayer)
 		for _, alivePlayerId := range alivePlayer {
 			//将剩余的那个玩家从aoi模块中删除,不同步消息了
 			if aliveHeroId := room.GetPlayerManager().GetHeroId(alivePlayerId); aliveHeroId != 0 {

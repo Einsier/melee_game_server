@@ -50,7 +50,7 @@ func (c *RequestController) Work1(room *NormalGameRoom) {
 func (c *RequestController) Work2(room *NormalGameRoom) {
 	mailQueue := make(chan *api.Mail, 100)
 
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 1; i++ {
 		//开10个消费者go程
 		go func() {
 			for {

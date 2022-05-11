@@ -41,7 +41,7 @@ func TestSingleMeet(t *testing.T) {
 		},
 	}
 	aoi := NewAOI(testHeroInitInfo, 40, 80, 1, 1, 1*time.Second, nil, nil)
-	aoi.Work()
+	aoi.Work(time.Now())
 	time.Sleep(6 * time.Second)
 	aoi.Stop()
 }
@@ -83,7 +83,7 @@ func TestSingleMeet2(t *testing.T) {
 		},
 	}
 	aoi := NewAOI(testHeroInitInfo, 5, 5, 1, 1, 1*time.Second, nil, TestMapQT)
-	aoi.Work()
+	aoi.Work(time.Now())
 	wg := sync.WaitGroup{}
 	wg.Add(1)
 	go func() {
@@ -172,7 +172,7 @@ func TestAOI_Grid(t *testing.T) {
 	}
 	aoi := NewAOI(testHeroInitInfo, TestGameMapWidth, TestGameMapHeight, TestGridWidth, TestGridHeight, 500*time.Millisecond, nil, TestMapQT)
 	//aoi.qt.Print()
-	go aoi.Work()
+	go aoi.Work(time.Now())
 	time.Sleep(10 * time.Second)
 }
 

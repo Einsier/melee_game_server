@@ -4,7 +4,6 @@ import (
 	"fmt"
 	configs "melee_game_server/configs/normal_game_type_configs"
 	"melee_game_server/framework/entity"
-	"melee_game_server/plugins/logger"
 	"strings"
 )
 
@@ -115,7 +114,7 @@ func (qt *Quadtree) CheckCollision(r *Rectangle) bool {
 	for obj := qt.Self.Next; obj != nil; obj = obj.Next {
 		//跟本节点中的地图资源比较
 		if obj.CollisionWith(r) {
-			logger.Testf("%s collision with %s", obj.Name, r.Name)
+			//logger.Testf("%s collision with %s", obj.Name, r.Name)
 			return true
 		}
 	}

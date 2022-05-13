@@ -61,7 +61,7 @@ func (gs *GameServer) Run() {
 		clientTcpPort = configs.ClientTcpPortForDeploy
 	}
 	//开启监听客户端的kcp服务
-	kcp.StartKCP("0.0.0.0:"+clientTcpPort, 16384, 16384)
+	kcp.StartKCP("0.0.0.0:"+clientTcpPort, 655360, 655360)
 	go gs.DispatchMail()
 }
 

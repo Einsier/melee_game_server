@@ -163,9 +163,14 @@ func (aoi *AOI) Work(startTime time.Time) {
 		var bulletMsg *BulletLaunchMsg
 		var hero *Hero
 		var ok bool
+		//count := 0
 		for {
 			select {
 			case <-ticker.C:
+				// if count += 1; count%10 == 0 {
+				// 	logger.Infof("一秒内发送离开视野报文:%d", atomic.LoadInt32(&leaveMsgSent))
+				// 	atomic.StoreInt32(&leaveMsgSent, 0)
+				// }
 				//因为发送的时候不会改变每个玩家的位置,所以拷贝一手全体玩家的当前位置,用于发送
 				m := make(map[int32]*proto.HeroMovementChangeBroadcast, len(aoi.Heroes))
 				for _, hero = range aoi.Heroes {
@@ -179,31 +184,38 @@ func (aoi *AOI) Work(startTime time.Time) {
 						Time:             hero.updateTime.Sub(startTime).Milliseconds(),
 					}
 				}
+
+				//再次遍历英雄列表,如果自己需要发送给客户端的话,不但发给自己,而且发给自己可见的英雄
+				for _, hero = range aoi.Heroes {
+					if hero.NeedBroad {
+
+					}
+				}
 				for _, me := range aoi.Heroes {
 					//将当前hero视野中的全部英雄的topMsg的指针放到view中,把view传给网络模块进行发送
 					meMap := make(map[int32]*proto.HeroMovementChangeBroadcast)
 					for otherId := range me.View {
 						//只有需要被广播的报文才发送
-						//if aoi.Heroes[otherId].NeedBroad {
+						// if aoi.Heroes[otherId].NeedBroad {
 						if meMap[otherId] = m[otherId]; meMap[otherId] == nil {
 							panic("!!!!!")
 						}
 						//}
 					}
-					//if len(meMap) != 0 {
-					//	logger.Infof("给玩家%d发送了%v的信息", me.Id, meMap)
-					//}
+					// if len(meMap) != 0 {
+					// 	logger.Infof("给玩家%d发送了%v的信息", me.Id, meMap)
+					// }
 					meMap[me.Id] = m[me.Id]
 					if aoi.gn != nil {
 						aoi.gn.SendByHeroId([]int32{me.Id}, codec.EncodeUnicast(&proto.HeroFrameSyncUnicast{Movement: meMap}))
 					} else {
 						//logger.Testf("send to hero:%d,map:%v", me.Id, meMap)
 					}
-					//for _, h := range aoi.Heroes {
-					//	//重置每个英雄的NeedBroad字段
-					//	h.NeedBroad = false
-					//}
 				}
+				// for _, h := range aoi.Heroes {
+				// 	//重置每个英雄的NeedBroad字段
+				// 	h.NeedBroad = false
+				// }
 			case moveMsg = <-aoi.Move:
 				hero, ok = aoi.Heroes[moveMsg.Id]
 				if !ok {

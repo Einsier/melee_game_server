@@ -33,7 +33,7 @@ func NewGrid(xIdx, yIdx int, grids [][]*Grid) *Grid {
 func (g *Grid) GetObjs() []int32 {
 	ret := make([]int32, len(g.Objs))
 	i := 0
-	for id, _ := range g.Objs {
+	for id := range g.Objs {
 		ret[i] = id
 		i++
 	}

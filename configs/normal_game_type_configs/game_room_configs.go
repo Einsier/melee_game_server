@@ -19,4 +19,4 @@ const (
 )
 
 //FrameSyncSlice 状态同步的间隔,当前暂定每秒同步20次
-var FrameSyncSlice = 80 * time.Millisecond
+var FrameSyncSlice = 100 * time.Millisecond

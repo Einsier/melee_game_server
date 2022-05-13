@@ -48,7 +48,7 @@ func (c *RequestController) Work1(room *NormalGameRoom) {
 
 //Work2 需要使用go Work2调用,接收消息并查看消息合法性,如果合法,投放到管道中让消费者go程执行回调函数
 func (c *RequestController) Work2(room *NormalGameRoom) {
-	mailQueue := make(chan *api.Mail, 100)
+	mailQueue := make(chan *api.Mail, 10000)
 
 	for i := 0; i < 1; i++ {
 		//开10个消费者go程

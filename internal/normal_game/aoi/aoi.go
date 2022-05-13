@@ -137,7 +137,7 @@ func NewAOI(heroesInitInfo *HeroesInitInfo, mx, my, gx, gy int, updateDuration t
 
 	aoi.MsgChan = new(MsgChan)
 	aoi.Quit = make(chan *HeroQuitMsg, 512)
-	aoi.Move = make(chan *HeroMoveMsg, 65536)
+	aoi.Move = make(chan *HeroMoveMsg, 655360)
 	aoi.Bullet = make(chan *BulletLaunchMsg, 65536)
 	aoi.Finish = make(chan struct{})
 	aoi.gn = gn
@@ -185,31 +185,55 @@ func (aoi *AOI) Work(startTime time.Time) {
 					}
 				}
 
-				//再次遍历英雄列表,如果自己需要发送给客户端的话,不但发给自己,而且发给自己可见的英雄
+				//再次遍历英雄列表,检查是否确实离开了彼此的视野
 				for _, hero = range aoi.Heroes {
-					if hero.NeedBroad {
-
+					if len(hero.LeaveSight) != 0 {
+						for i := 0; i < len(hero.LeaveSight); i++ {
+							if _, stillIn := hero.View[hero.LeaveSight[i]]; stillIn {
+								//如果仍然在视野中,那么不删除
+								if i == len(hero.LeaveSight)-1 {
+									hero.LeaveSight = hero.LeaveSight[:i]
+								} else {
+									hero.LeaveSight = append(hero.LeaveSight[:i], hero.LeaveSight[i+1:]...)
+								}
+							}
+						}
 					}
 				}
+
+				//todo 跟状态同步报文合成一个
+				for _, hero = range aoi.Heroes {
+					for i := 0; i < len(hero.LeaveSight); i++ {
+						msg := codec.EncodeUnicast(&proto.HeroLeaveSightUnicast{HeroId: hero.LeaveSight[i]})
+						aoi.gn.SendByHeroId([]int32{hero.Id}, msg)
+					}
+				}
+				//end todo
+
 				for _, me := range aoi.Heroes {
 					//将当前hero视野中的全部英雄的topMsg的指针放到view中,把view传给网络模块进行发送
 					meMap := make(map[int32]*proto.HeroMovementChangeBroadcast)
 					for otherId := range me.View {
 						//只有需要被广播的报文才发送
-						// if aoi.Heroes[otherId].NeedBroad {
-						if meMap[otherId] = m[otherId]; meMap[otherId] == nil {
-							panic("!!!!!")
+						if aoi.Heroes[otherId].NeedBroad {
+							if meMap[otherId] = m[otherId]; meMap[otherId] == nil {
+								panic("!!!!!")
+							}
 						}
-						//}
+					}
+					if me.NeedBroad {
+						meMap[me.Id] = m[me.Id]
 					}
 					// if len(meMap) != 0 {
 					// 	logger.Infof("给玩家%d发送了%v的信息", me.Id, meMap)
 					// }
-					meMap[me.Id] = m[me.Id]
-					if aoi.gn != nil {
-						aoi.gn.SendByHeroId([]int32{me.Id}, codec.EncodeUnicast(&proto.HeroFrameSyncUnicast{Movement: meMap}))
-					} else {
-						//logger.Testf("send to hero:%d,map:%v", me.Id, meMap)
+					//meMap[me.Id] = m[me.Id]
+					if len(meMap) != 0 {
+						if aoi.gn != nil {
+							aoi.gn.SendByHeroId([]int32{me.Id}, codec.EncodeUnicast(&proto.HeroFrameSyncUnicast{Movement: meMap}))
+						} else {
+							logger.Testf("send to hero:%d,map:%v", me.Id, meMap)
+						}
 					}
 				}
 				// for _, h := range aoi.Heroes {

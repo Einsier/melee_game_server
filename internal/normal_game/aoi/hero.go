@@ -1,10 +1,8 @@
 package aoi
 
 import (
-	"melee_game_server/api/client/proto"
 	"melee_game_server/framework/entity"
 	"melee_game_server/internal/normal_game/aoi/collision"
-	"melee_game_server/internal/normal_game/codec"
 	"melee_game_server/internal/normal_game/game_net"
 	"strconv"
 	"sync/atomic"
@@ -34,8 +32,8 @@ type Hero struct {
 	View       map[int32]struct{} //能看到的英雄
 	NeedBroad  bool               //本轮是否需要状态同步给自己 or 其他玩家
 
-	LeaveSight    map[int32]struct{} //离开本英雄视野的其他英雄
-	NeedBroadHero []*Hero            //本次同步需要广播的英雄
+	LeaveSight    []int32 //离开本英雄视野的其他英雄
+	NeedBroadHero []*Hero //本次同步需要广播的英雄
 }
 
 func (h *Hero) VisibleHeroes() []int32 {
@@ -229,10 +227,10 @@ func (h *Hero) UpdateMovement(info *HeroMoveMsg, gn *game_net.NormalGameNetServe
 						delete(h.View, id)
 
 						//分别给自己和其他英雄发送离开视野的报文,让前端取消加载英雄
-						msg1 := codec.EncodeUnicast(&proto.HeroLeaveSightUnicast{HeroId: h.Id})
-						msg2 := codec.EncodeUnicast(&proto.HeroLeaveSightUnicast{HeroId: id})
-						gn.SendByHeroId([]int32{id}, msg1)
-						gn.SendByHeroId([]int32{h.Id}, msg2)
+						//msg1 := codec.EncodeUnicast(&proto.HeroLeaveSightUnicast{HeroId: h.Id})
+						//msg2 := codec.EncodeUnicast(&proto.HeroLeaveSightUnicast{HeroId: id})
+						//gn.SendByHeroId([]int32{id}, msg1)
+						//gn.SendByHeroId([]int32{h.Id}, msg2)
 						atomic.AddInt32(&leaveMsgSent, 2)
 						//logger.Infof("[%d][%d]离开了彼此的视野", id, h.Id)
 					}
@@ -246,6 +244,10 @@ func (h *Hero) UpdateMovement(info *HeroMoveMsg, gn *game_net.NormalGameNetServe
 							h.aoi.Heroes[id].View[h.Id] = struct{}{}
 							//将joinGrid中的英雄的可见英雄中加入本英雄
 							h.View[id] = struct{}{}
+							//在这里有个特殊情况,就是比如a和b在左右相邻的格子(a左b右),a追着b走,b先跨越了格子,a随后也跨越了格子,那么在这种逻辑下
+							//如果最后不检查,给ab发送了删除彼此的报文,就会出错,所以最后还要遍历一下每个英雄的LeaveSight集合,是否确实LeaveSight了
+							h.LeaveSight = append(h.LeaveSight, id)
+							h.aoi.Heroes[id].LeaveSight = append(h.aoi.Heroes[id].LeaveSight, h.Id)
 							//h.aoi.Heroes[id].NeedBroad = true
 							//logger.Infof("[%d][%d]进入了彼此的视野", id, h.Id)
 						}

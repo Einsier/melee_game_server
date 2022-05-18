@@ -8,6 +8,8 @@ import (
 	"melee_game_server/internal/normal_game/metrics"
 	"melee_game_server/plugins/logger"
 	"melee_game_server/server"
+	"net/http"
+	_ "net/http/pprof"
 	"os"
 	"runtime"
 	"strconv"
@@ -60,6 +62,15 @@ func ParseFlags() {
 }
 
 func main() {
+	go func() {
+		//开启监听端口
+		if err := http.ListenAndServe(":9999", nil); err != nil {
+			log.Fatal(err)
+			return
+		}
+	}()
+	//监控锁的状态,如果不加这一句则默认不监控
+	runtime.SetMutexProfileFraction(1)
 	ParseFlags()
 	server.GS.HallRpcPort = *hallRpcPortFlag
 	server.GS.ClientAddr = *clientTcpAddrFlag

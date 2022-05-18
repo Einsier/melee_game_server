@@ -13,6 +13,7 @@ message Unicast{
 //HeroFrameSyncUnicast 英雄每隔固定时间同步周围可见的英雄的位置报文
 message HeroFrameSyncUnicast{
     map<int32,HeroMovementChangeBroadcast> movement = 1;    //当前视野内的玩家的运动状态+当前位置+服务器发送包的时间
+    //repeated int32 leaveSightHeroId = 2;
 }
 
 //HeroLeaveSightUnicast 其他英雄离开本英雄视野的报文

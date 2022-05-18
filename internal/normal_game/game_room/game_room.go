@@ -137,18 +137,18 @@ func (room *NormalGameRoom) Start() {
 //GetNormalGameStartBroadcastInfo 为了方便前端显示名字以及其他内容,将每个英雄对应的玩家的名字加入集合发给前端
 func (room *NormalGameRoom) GetNormalGameStartBroadcastInfo() *proto.TopMessage {
 	pm := room.GetPlayerManager()
-	m := make(map[int32]string, configs.MaxNormalGamePlayerNum) //key为玩家的heroId,value为对应玩家的nickname
-	for i := int32(1); i <= configs.MaxNormalGamePlayerNum; i++ {
-		nickname := pm.GetNicknameByHeroId(i)
-		if nickname == "" {
-			logger.Errorf("获取hero id:%d nickname出错,游戏不能正常显示nickname!\n", i)
-			nickname = "error msg"
+	m := make(map[int32]string) //key为玩家的heroId,value为对应玩家的nickname
+	if configs.MaxNormalGamePlayerNum < 200 {
+		for i := int32(1); i <= configs.MaxNormalGamePlayerNum; i++ {
+			nickname := pm.GetNicknameByHeroId(i)
+			if nickname == "" {
+				logger.Errorf("获取hero id:%d nickname出错,游戏不能正常显示nickname!\n", i)
+				nickname = "error msg"
+			}
+			m[i] = nickname
 		}
-		//todo 删掉这行
-		//m[i] = "a"
-		//m[i] = nickname
 	}
-	return codec.Encode(&proto.GameStartBroadcast{NickNameMap: m})
+	return codec.Encode(&proto.GameStartBroadcast{NickNameMap: m, HeroNum: configs.MaxNormalGamePlayerNum})
 }
 
 //GetGameInfo 获取房间的游戏快照信息

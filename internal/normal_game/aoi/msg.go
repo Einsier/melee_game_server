@@ -62,8 +62,11 @@ func NewRandomHeroesInitInfo(heroNum int32, speed float32, qt *collision.Quadtre
 		heroes[i].Direction = entity.Vector2Zero
 		heroes[i].Time = time.Now()
 		for {
-			position.X = utils.RandomFloat32(1, qt.Self.UR.X-1)
-			position.Y = utils.RandomFloat32(1, qt.Self.UR.Y-1)
+			//todo 测试用
+			// position.X = utils.RandomFloat32(1, qt.Self.UR.X-1)
+			// position.Y = utils.RandomFloat32(1, qt.Self.UR.Y-1)
+			position.X = utils.RandomFloat32(1, 240-1)
+			position.Y = utils.RandomFloat32(1, 140-1)
 			heroMid := collision.NewRubyRectangleByMid(position, "insert-"+strconv.Itoa(i+1))
 			if !qt.CheckCollision(heroMid) && !heroQt.CheckCollision(heroMid) {
 				//如果和当前的地图障碍物或者其他英雄重合,则重新随机X和Y

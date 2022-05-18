@@ -64,6 +64,7 @@ message HeroBulletLaunchBroadcast{
 
 message GameStartBroadcast{
     map<int32,string> nickNameMap  = 1;         //<heroId,nickName>
+    int32 heroNum   = 2;                        //参加游戏的英雄数量
 }
 
 message GameOverBroadcast{

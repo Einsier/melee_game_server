@@ -187,15 +187,13 @@ func (aoi *AOI) Work(startTime time.Time) {
 
 				//再次遍历英雄列表,检查是否确实离开了彼此的视野
 				for _, hero = range aoi.Heroes {
-					if len(hero.LeaveSight) != 0 {
-						for i := 0; i < len(hero.LeaveSight); i++ {
-							if _, stillIn := hero.View[hero.LeaveSight[i]]; stillIn {
-								//如果仍然在视野中,那么不删除
-								if i == len(hero.LeaveSight)-1 {
-									hero.LeaveSight = hero.LeaveSight[:i]
-								} else {
-									hero.LeaveSight = append(hero.LeaveSight[:i], hero.LeaveSight[i+1:]...)
-								}
+					for i := 0; i < len(hero.LeaveSight); i++ {
+						if _, stillIn := hero.View[hero.LeaveSight[i]]; stillIn {
+							//如果仍然在视野中,那么不删除
+							if i == len(hero.LeaveSight)-1 {
+								hero.LeaveSight = hero.LeaveSight[:i]
+							} else {
+								hero.LeaveSight = append(hero.LeaveSight[:i], hero.LeaveSight[i+1:]...)
 							}
 						}
 					}
@@ -221,6 +219,9 @@ func (aoi *AOI) Work(startTime time.Time) {
 							}
 						}
 					}
+					for i := 0; i < len(me.NeedBroadHero); i++ {
+						meMap[me.NeedBroadHero[i].Id] = m[me.NeedBroadHero[i].Id]
+					}
 					if me.NeedBroad {
 						meMap[me.Id] = m[me.Id]
 					}
@@ -236,10 +237,12 @@ func (aoi *AOI) Work(startTime time.Time) {
 						}
 					}
 				}
-				// for _, h := range aoi.Heroes {
-				// 	//重置每个英雄的NeedBroad字段
-				// 	h.NeedBroad = false
-				// }
+				for _, h := range aoi.Heroes {
+					//重置每个英雄的NeedBroad字段
+					h.NeedBroad = false
+					h.LeaveSight = make([]int32, 0)
+					h.NeedBroadHero = make([]*Hero, 0)
+				}
 			case moveMsg = <-aoi.Move:
 				hero, ok = aoi.Heroes[moveMsg.Id]
 				if !ok {

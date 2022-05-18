@@ -8,8 +8,10 @@ package normal_game_type_configs
  */
 
 const (
-	MapWidth   = 240 //地图宽度,单位m
-	MapHeight  = 140 //地图高度,单位m
+	// MapWidth   = 240 //地图宽度,单位m
+	// MapHeight  = 140 //地图高度,单位m
+	MapWidth   = 480 //地图宽度,单位m
+	MapHeight  = 280 //地图高度,单位m
 	GridWidth  = 15  //网格宽度
 	GridHeight = 10  //网格高度
 )

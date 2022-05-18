@@ -23,7 +23,7 @@ const (
 	HeroColliderYHalf = HeroColliderY / 2 //碰撞高度的一半
 )
 
-const HeroMoveSpeed = 0.008 //英雄移动速度,单位为m/ms,即8m/s
+const HeroMoveSpeed = 0.005 //英雄移动速度,单位为m/ms,即8m/s
 
 //Player的状态
 const (

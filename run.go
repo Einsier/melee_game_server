@@ -79,6 +79,6 @@ func main() {
 	server.EtcdCli = server.NewEtcdCli()
 	go metrics.Start()
 	server.GS.Run()
-	logger.Infof("开启game server:大厅服务器rpc端口[%s],客户端kcp地址[%s]\n", *hallRpcPortFlag, *clientTcpAddrFlag)
+	logger.Infof("开启game server:大厅服务器rpc端口[%s],客户端kcp地址[%s],单局玩家数为[%d]\n", *hallRpcPortFlag, *clientTcpAddrFlag, *playerNumFlag)
 	time.Sleep(1000000 * time.Minute)
 }
